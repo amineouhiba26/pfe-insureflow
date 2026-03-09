@@ -1,13 +1,11 @@
-package org.example.pfeinsureflow;
+package com.insureflow;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class PfeInsureflowApplication {
-
+public class InsureflowApplication {
     public static void main(String[] args) {
-        SpringApplication.run(PfeInsureflowApplication.class, args);
+        SpringApplication.run(InsureflowApplication.class, args);
     }
-
 }
