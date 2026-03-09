@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS claims (
     type             VARCHAR(50),
     status           VARCHAR(50) NOT NULL DEFAULT 'SUBMITTED',
     description      TEXT,
-    photo_urls       TEXT[],
+    photo_urls       TEXT,
     router_result    TEXT,
     validator_result TEXT,
     estimator_result TEXT,
