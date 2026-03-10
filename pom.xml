@@ -66,6 +66,12 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Sprint 3: RabbitMQ async messaging -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+
         <!-- ── Testing ───────────────────────────────────── -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
