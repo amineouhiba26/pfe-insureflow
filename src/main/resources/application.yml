@@ -47,3 +47,15 @@ management:
 logging:
   level:
     com.insureflow: DEBUG
+
+insureflow:
+  rabbitmq:
+    exchange: insureflow.claims
+    queues:
+      intake:     claim.intake
+      routed:     claim.routed
+      validated:  claim.validated
+      estimated:  claim.estimated
+      fraud:      claim.fraud.checked
+      decision:   claim.decision
+      review:     claim.human.review
