@@ -1,4 +1,7 @@
 spring:
+  main:
+    allow-bean-definition-overriding: true
+
   application:
     name: insureflow
 
@@ -32,6 +35,22 @@ spring:
     username: insureflow
     password: insureflow
 
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        model: llama3.1:8b
+        options:
+          temperature: 0.1
+      embedding:
+        model: mxbai-embed-large
+    vectorstore:
+      pgvector:
+        initialize-schema: true
+        dimensions: 1024
+        distance-type: COSINE_DISTANCE
+        index-type: HNSW
+
 server:
   port: 8080
 
@@ -52,10 +71,19 @@ insureflow:
   rabbitmq:
     exchange: insureflow.claims
     queues:
-      intake:     claim.intake
-      routed:     claim.routed
-      validated:  claim.validated
-      estimated:  claim.estimated
-      fraud:      claim.fraud.checked
-      decision:   claim.decision
-      review:     claim.human.review
+      intake:    claim.intake
+      routed:    claim.routed
+      validated: claim.validated
+      estimated: claim.estimated
+      fraud:     claim.fraud.checked
+      decision:  claim.decision
+      review:    claim.human.review
+
+langchain4j:
+  ollama:
+    chat-model:
+      enabled: false   # we wire ChatLanguageModel manually in LangChain4jConfig
+      base-url: http://localhost:11434
+      model-name: llama3.1:8b
+      temperature: 0.1
+      timeout: 120s
