@@ -56,33 +56,44 @@ public class DocumentIngestionAdapter implements VectorStorePort {
 
     @Override
     public void ingestDocument(String policyId, byte[] fileBytes, String fileName) {
-        log.info("[RAG] Ingesting document '{}' for policyId={}", fileName, policyId);
+        log.info("[RAG] Ingesting document '{}' for policyId={} size={}bytes",
+                fileName, policyId, fileBytes.length);
 
-        // Wrap bytes as a Spring resource so PDF reader can process it
-        ByteArrayResource resource = new ByteArrayResource(fileBytes) {
-            @Override
-            public String getFilename() { return fileName; }
-        };
+        if (fileBytes == null || fileBytes.length == 0) {
+            throw new IllegalArgumentException("File bytes are empty for: " + fileName);
+        }
 
-        // Read PDF page by page
-        PdfDocumentReaderConfig config = PdfDocumentReaderConfig.builder()
-                .withPagesPerDocument(1)
-                .build();
-        PagePdfDocumentReader reader = new PagePdfDocumentReader(resource, config);
-        List<Document> pages = reader.get();
+        try {
+            // Write bytes to a temp file — more reliable than ByteArrayResource for PDFBox
+            java.nio.file.Path tempFile = java.nio.file.Files.createTempFile("insureflow-", "-" + fileName);
+            java.nio.file.Files.write(tempFile, fileBytes);
 
-        // Split into 500-token chunks with 50-token overlap
-        TokenTextSplitter splitter = new TokenTextSplitter(500, 50, 5, 10000, true);
-        List<Document> chunks = splitter.apply(pages);
+            org.springframework.core.io.FileSystemResource resource =
+                    new org.springframework.core.io.FileSystemResource(tempFile.toFile());
 
-        // Tag each chunk with policyId so we can filter by it at query time
-        chunks.forEach(chunk ->
-                chunk.getMetadata().put("policyId", policyId));
+            PdfDocumentReaderConfig config = PdfDocumentReaderConfig.builder()
+                    .withPagesPerDocument(1)
+                    .build();
+            PagePdfDocumentReader reader = new PagePdfDocumentReader(resource, config);
+            List<Document> pages = reader.get();
 
-        // Embed and store in pgvector
-        vectorStore.add(chunks);
+            log.info("[RAG] Read {} pages from '{}'", pages.size(), fileName);
 
-        log.info("[RAG] Stored {} chunks for policyId={}", chunks.size(), policyId);
+            TokenTextSplitter splitter = new TokenTextSplitter(500, 50, 5, 10000, true);
+            List<Document> chunks = splitter.apply(pages);
+
+            chunks.forEach(chunk -> chunk.getMetadata().put("policyId", policyId));
+
+            vectorStore.add(chunks);
+
+            // Clean up temp file
+            java.nio.file.Files.deleteIfExists(tempFile);
+
+            log.info("[RAG] Stored {} chunks for policyId={}", chunks.size(), policyId);
+
+        } catch (java.io.IOException e) {
+            throw new RuntimeException("Failed to process PDF: " + e.getMessage(), e);
+        }
     }
 
     @Override
