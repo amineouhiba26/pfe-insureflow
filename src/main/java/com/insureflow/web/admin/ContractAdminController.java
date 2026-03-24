@@ -41,19 +41,24 @@ public class ContractAdminController {
             @PathVariable String policyId,
             @RequestParam("file") MultipartFile file) {
         try {
-            log.info("[ADMIN] Ingesting contract for policyId={} file='{}'",
-                    policyId, file.getOriginalFilename());
+            log.info("[ADMIN] Ingesting contract for policyId={} file='{}' size={}bytes",
+                    policyId, file.getOriginalFilename(), file.getSize());
 
-            vectorStorePort.ingestDocument(
-                    policyId,
-                    file.getBytes(),
-                    file.getOriginalFilename()
-            );
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "File is empty"));
+            }
+
+            byte[] bytes = file.getBytes();
+            log.info("[ADMIN] Read {} bytes from upload", bytes.length);
+
+            vectorStorePort.ingestDocument(policyId, bytes, file.getOriginalFilename());
 
             return ResponseEntity.ok(Map.of(
                     "status", "ingested",
                     "policyId", policyId,
-                    "fileName", file.getOriginalFilename()
+                    "fileName", file.getOriginalFilename(),
+                    "size", file.getSize() + " bytes"
             ));
         } catch (Exception e) {
             log.error("[ADMIN] Ingestion failed for policyId={}: {}", policyId, e.getMessage());
