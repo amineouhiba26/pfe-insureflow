@@ -10,110 +10,212 @@ import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
-import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Implements VectorStorePort using Spring AI + pgvector.
+ * RAG adapter for insurance contract ingestion and semantic retrieval.
  *
- * INGESTION flow (when admin uploads a PDF contract):
- * 1. ByteArrayResource wraps the raw PDF bytes so Spring AI can read them
- * 2. PagePdfDocumentReader reads each page as a Document
- * 3. TokenTextSplitter splits pages into 500-token chunks with 50-token overlap
- *    Why overlap? So sentences at chunk boundaries aren't cut in half —
- *    the end of chunk N and start of chunk N+1 share 50 tokens.
- * 4. Each chunk gets metadata: {"policyId": "uuid-here"}
- * 5. VectorStore embeds each chunk using mxbai-embed-large (1024 dimensions)
- *    and stores the vector + metadata in the vector_store table in Postgres
+ * Ingestion pipeline:
+ *   PDF bytes → temp file → PDFBox pages → text cleaning → token chunks
+ *   → policyId metadata → mxbai-embed-large (1024D) → pgvector
  *
- * RETRIEVAL flow (when ValidatorAgent needs contract sections):
- * 1. Query = claim description
- * 2. FilterExpressionBuilder adds: WHERE metadata->>'policyId' = 'uuid-here'
- *    This ensures we ONLY retrieve chunks from THIS client's contract
- * 3. pgvector finds the top-K chunks whose embeddings are most similar
- *    to the query embedding (cosine distance)
- * 4. Returns the raw text of those chunks
+ * Retrieval pipeline:
+ *   query text → embed → cosine search (filtered by policyId) → top-K chunks
  *
- * Why 500 tokens / 50 overlap?
- * 500 tokens ≈ 375 words ≈ one or two contract articles.
- * Small enough to fit many chunks in the LLM context.
- * Large enough to contain meaningful coverage information.
+ * Design decisions:
+ *   - 300-token chunks: BNA contracts are 2 pages. Smaller chunks = more
+ *     precise retrieval. Each chunk maps to roughly one contract section.
+ *   - 50-token overlap: prevents sentences from being severed at boundaries.
+ *   - policyId filter: each client only sees their own contract chunks,
+ *     never another client's.
+ *   - Delete before re-ingest: uploading a new version of a contract
+ *     replaces the old chunks cleanly instead of duplicating them.
+ *   - 0.4 similarity threshold: filters out noise chunks that are
+ *     semantically too far from the query.
  */
 @Component
 public class DocumentIngestionAdapter implements VectorStorePort {
 
     private static final Logger log = LoggerFactory.getLogger(DocumentIngestionAdapter.class);
 
-    private final VectorStore vectorStore;
+    private static final int    CHUNK_SIZE          = 300;
+    private static final int    CHUNK_OVERLAP        = 50;
+    private static final int    MIN_CHUNK_LENGTH     = 5;
+    private static final int    MAX_CHUNK_CHARACTERS = 10_000;
+    private static final double SIMILARITY_THRESHOLD = 0.4;
+    private static final int    MIN_EXPECTED_CHUNKS  = 2;
 
-    public DocumentIngestionAdapter(VectorStore vectorStore) {
+    private final VectorStore  vectorStore;
+    private final JdbcTemplate jdbc;
+
+    public DocumentIngestionAdapter(VectorStore vectorStore, JdbcTemplate jdbc) {
         this.vectorStore = vectorStore;
+        this.jdbc        = jdbc;
     }
+
+    // ── Ingestion ────────────────────────────────────────────────────────────
 
     @Override
     public void ingestDocument(String policyId, byte[] fileBytes, String fileName) {
-        log.info("[RAG] Ingesting document '{}' for policyId={} size={}bytes",
-                fileName, policyId, fileBytes.length);
+        validateInput(policyId, fileBytes, fileName);
 
-        if (fileBytes == null || fileBytes.length == 0) {
-            throw new IllegalArgumentException("File bytes are empty for: " + fileName);
-        }
+        long start = System.currentTimeMillis();
+        log.info("[RAG] Starting ingestion — policy={} file='{}' size={}KB",
+                policyId, fileName, fileBytes.length / 1024);
 
+        Path tempFile = null;
         try {
-            // Write bytes to a temp file — more reliable than ByteArrayResource for PDFBox
-            java.nio.file.Path tempFile = java.nio.file.Files.createTempFile("insureflow-", "-" + fileName);
-            java.nio.file.Files.write(tempFile, fileBytes);
+            tempFile = writeTempFile(fileBytes, fileName);
 
-            org.springframework.core.io.FileSystemResource resource =
-                    new org.springframework.core.io.FileSystemResource(tempFile.toFile());
+            List<Document> pages   = readPages(tempFile);
+            List<Document> cleaned = cleanPages(pages);
+            List<Document> chunks  = chunk(cleaned);
 
-            PdfDocumentReaderConfig config = PdfDocumentReaderConfig.builder()
-                    .withPagesPerDocument(1)
-                    .build();
-            PagePdfDocumentReader reader = new PagePdfDocumentReader(resource, config);
-            List<Document> pages = reader.get();
+            tagWithPolicyId(chunks, policyId);
 
-            log.info("[RAG] Read {} pages from '{}'", pages.size(), fileName);
-
-            TokenTextSplitter splitter = new TokenTextSplitter(500, 50, 5, 10000, true);
-            List<Document> chunks = splitter.apply(pages);
-
-            chunks.forEach(chunk -> chunk.getMetadata().put("policyId", policyId));
+            // Delete any existing chunks for this policy before storing new ones
+            // This ensures re-uploading a contract replaces rather than duplicates
+            deleteExistingChunks(policyId);
 
             vectorStore.add(chunks);
 
-            // Clean up temp file
-            java.nio.file.Files.deleteIfExists(tempFile);
+            long elapsed = System.currentTimeMillis() - start;
+            log.info("[RAG] Ingestion complete — policy={} pages={} chunks={} time={}ms",
+                    policyId, pages.size(), chunks.size(), elapsed);
 
-            log.info("[RAG] Stored {} chunks for policyId={}", chunks.size(), policyId);
+            if (chunks.size() < MIN_EXPECTED_CHUNKS) {
+                log.warn("[RAG] Low chunk count ({}) for policy={} — PDF may have extraction issues",
+                        chunks.size(), policyId);
+            }
 
-        } catch (java.io.IOException e) {
-            throw new RuntimeException("Failed to process PDF: " + e.getMessage(), e);
+        } catch (IOException e) {
+            throw new RuntimeException(
+                    "PDF ingestion failed for policy " + policyId + ": " + e.getMessage(), e);
+        } finally {
+            deleteTempFile(tempFile);
         }
     }
 
+    // ── Retrieval ─────────────────────────────────────────────────────────────
+
     @Override
     public List<String> retrieveRelevantChunks(String query, String policyId, int topK) {
-        log.debug("[RAG] Retrieving top-{} chunks for policyId={}", topK, policyId);
+        log.debug("[RAG] Retrieving top-{} chunks — policy={} query='{}'",
+                topK, policyId, truncate(query, 60));
 
-        // Build a metadata filter: only return chunks from this policy's contract
         FilterExpressionBuilder b = new FilterExpressionBuilder();
-        var filter = b.eq("policyId", policyId).build();
 
         SearchRequest request = SearchRequest.builder()
                 .query(query)
                 .topK(topK)
-                .filterExpression(filter)
+                .similarityThreshold(SIMILARITY_THRESHOLD)
+                .filterExpression(b.eq("policyId", policyId).build())
                 .build();
 
-        List<Document> results = vectorStore.similaritySearch(request);
-
-        return results.stream()
+        List<String> chunks = vectorStore.similaritySearch(request)
+                .stream()
                 .map(Document::getText)
                 .collect(Collectors.toList());
+
+        log.debug("[RAG] Retrieved {} chunks for policy={}", chunks.size(), policyId);
+        return chunks;
+    }
+
+    // ── Private helpers ───────────────────────────────────────────────────────
+
+    private void validateInput(String policyId, byte[] fileBytes, String fileName) {
+        if (policyId == null || policyId.isBlank())
+            throw new IllegalArgumentException("policyId must not be blank");
+        if (fileBytes == null || fileBytes.length == 0)
+            throw new IllegalArgumentException("File bytes are empty for: " + fileName);
+        if (fileName == null || fileName.isBlank())
+            throw new IllegalArgumentException("fileName must not be blank");
+    }
+
+    private Path writeTempFile(byte[] fileBytes, String fileName) throws IOException {
+        Path temp = Files.createTempFile("insureflow-", "-" + fileName);
+        Files.write(temp, fileBytes);
+        return temp;
+    }
+
+    private List<Document> readPages(Path file) {
+        PdfDocumentReaderConfig config = PdfDocumentReaderConfig.builder()
+                .withPagesPerDocument(1)
+                .build();
+        return new PagePdfDocumentReader(new FileSystemResource(file.toFile()), config).get();
+    }
+
+    private List<Document> cleanPages(List<Document> pages) {
+        return pages.stream()
+                .map(page -> new Document(cleanText(page.getText()), page.getMetadata()))
+                .filter(page -> !page.getText().isBlank())
+                .collect(Collectors.toList());
+    }
+
+    private List<Document> chunk(List<Document> pages) {
+        return new TokenTextSplitter(
+                CHUNK_SIZE, CHUNK_OVERLAP, MIN_CHUNK_LENGTH, MAX_CHUNK_CHARACTERS, true)
+                .apply(pages);
+    }
+
+    private void tagWithPolicyId(List<Document> chunks, String policyId) {
+        chunks.forEach(chunk -> chunk.getMetadata().put("policyId", policyId));
+    }
+
+    /**
+     * Deletes all pgvector entries for a given policyId.
+     * Called before re-ingestion so we never accumulate duplicate chunks.
+     */
+    private void deleteExistingChunks(String policyId) {
+        int deleted = jdbc.update(
+                "DELETE FROM vector_store WHERE metadata->>'policyId' = ?", policyId);
+        if (deleted > 0) {
+            log.info("[RAG] Deleted {} existing chunks for policy={} before re-ingestion",
+                    deleted, policyId);
+        }
+    }
+
+    private void deleteTempFile(Path tempFile) {
+        if (tempFile == null) return;
+        try {
+            Files.deleteIfExists(tempFile);
+        } catch (IOException e) {
+            log.warn("[RAG] Could not delete temp file {}: {}", tempFile, e.getMessage());
+        }
+    }
+
+    /**
+     * Cleans PDFBox text extracted from table-based BNA contracts.
+     *
+     * PDFBox reads table columns with large whitespace gaps:
+     *   "Dommage     collision          8 477,528       5 %      629.033"
+     *
+     * After cleaning:
+     *   "Dommage collision 8 477,528 5 % 629.033"
+     */
+    private String cleanText(String raw) {
+        if (raw == null) return "";
+
+        return Arrays.stream(raw.split("\n"))
+                .map(line -> line.replace("\t", " "))
+                .map(line -> line.replaceAll(" {2,}", " "))
+                .map(String::trim)
+                .filter(line -> !line.isBlank())
+                .filter(line -> !line.matches("^\\d{1,2}$"))  // remove lone page numbers
+                .collect(Collectors.joining("\n"));
+    }
+
+    private String truncate(String text, int maxLength) {
+        if (text == null) return "";
+        return text.length() <= maxLength ? text : text.substring(0, maxLength) + "...";
     }
 }

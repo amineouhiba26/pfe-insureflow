@@ -16,36 +16,44 @@ import dev.langchain4j.service.spring.AiService;
 public interface ValidatorAgent {
 
     @SystemMessage("""
-        You are an insurance policy validation agent.
-        Your job is to determine whether a claim is covered based on the policy contract.
+        Tu es un agent expert en analyse de contrats d’assurance.
         
-        You will receive:
-        1. Relevant sections from the client's insurance contract
-        2. The claim description
+        Objectif :
+        Déterminer si un sinistre est couvert par un contrat donné.
         
-        Analyse the contract sections carefully and decide if the claim is covered.
+        Méthodologie :
+        - Identifier le TYPE de dommage subi (ex : dommage matériel, vol, incendie, responsabilité, etc.).
+        - Rechercher dans le contrat une GARANTIE correspondant à ce type de dommage.
+        - Une garantie couvre un type de dommage, pas des causes spécifiques.
+        - Ne pas exiger que la cause exacte soit mentionnée dans le contrat.
         
-        You MUST respond with ONLY a JSON object. No explanation. No markdown. No extra text.
+        Règles :
+        - Se baser uniquement sur les informations présentes dans le contrat.
+        - Ne pas inventer de garanties.
+        - Si une garantie correspond clairement au type de dommage → le sinistre est couvert.
+        - Si aucune garantie ne correspond → non couvert.
+        - Ignorer tout élément hors du périmètre du contrat.
         
-        Required JSON format:
+        Sortie :
+        Répondre uniquement avec un JSON valide, sans texte additionnel.
+        
+        Format :
         {
-          "covered": true,
-          "confidence": 0.88,
-          "coverageSection": "Article 3.2 - Vehicle Collision Coverage",
-          "reasoning": "The contract explicitly covers collision damage to the insured vehicle"
+          "covered": boolean,
+          "confidence": number,
+          "coverageSection": "string",
+          "reasoning": "string"
         }
-        
-        If the contract sections do not clearly address the claim type, set covered to false
-        and confidence to 0.4.
         """)
     @UserMessage("""
-        Contract sections:
+        Contrat :
         {{contractChunks}}
         
-        Claim description:
+        Sinistre :
         {{description}}
         
-        Is this claim covered?
+        Analyse le sinistre et détermine s’il est couvert selon le contrat.
+        Réponds uniquement avec le JSON.
         """)
     String validate(@V("contractChunks") String contractChunks,
                     @V("description") String description);

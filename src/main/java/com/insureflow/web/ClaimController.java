@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -53,5 +54,15 @@ public class ClaimController {
                 .map(ClaimResponse::fromDomain)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping
+    public ResponseEntity<List<ClaimResponse>> getByClientId(
+            @RequestParam UUID clientId) {
+        List<ClaimResponse> claims = claimRepository.findByClientId(clientId)
+                .stream()
+                .map(ClaimResponse::fromDomain)
+                .toList();
+        return ResponseEntity.ok(claims);
     }
 }
