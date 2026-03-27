@@ -1,4 +1,3 @@
-// ClaimController.java
 package com.insureflow.web;
 
 import com.insureflow.application.dto.ClaimResponse;
@@ -6,9 +5,12 @@ import com.insureflow.application.dto.SubmitClaimRequest;
 import com.insureflow.domain.model.Claim;
 import com.insureflow.domain.port.in.SubmitClaimUseCase;
 import com.insureflow.domain.port.out.ClaimRepository;
+import com.insureflow.infrastructure.PhotoUploadService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -28,23 +30,29 @@ public class ClaimController {
 
     private final SubmitClaimUseCase submitClaimUseCase;
     private final ClaimRepository claimRepository;
+    private final PhotoUploadService photoUploadService;
 
     public ClaimController(SubmitClaimUseCase submitClaimUseCase,
-                           ClaimRepository claimRepository) {
+                           ClaimRepository claimRepository,
+                           PhotoUploadService photoUploadService) {
         this.submitClaimUseCase = submitClaimUseCase;
         this.claimRepository = claimRepository;
+        this.photoUploadService = photoUploadService;
     }
 
-    @PostMapping
-    public ResponseEntity<ClaimResponse> submit(
-            @Valid @RequestBody SubmitClaimRequest request) {
+    @PostMapping(value = "/with-photos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ClaimResponse> submitWithPhotos(
+            @RequestParam("clientId")    UUID clientId,
+            @RequestParam("policyId")    UUID policyId,
+            @RequestParam("description") String description,
+            @RequestParam(value = "photos", required = false) List<MultipartFile> photos) {
+
+        // Upload photos to Cloudinary and collect URLs
+        List<String> photoUrls = photoUploadService.uploadAll(photos);
+
         Claim claim = submitClaimUseCase.submit(
-                request.getClientId(),
-                request.getPolicyId(),
-                request.getDescription(),
-                request.getPhotoUrls()
-        );
-        // 202 Accepted = "received, processing started, come back later"
+                clientId, policyId, description, photoUrls);
+
         return ResponseEntity.accepted().body(ClaimResponse.fromDomain(claim));
     }
 
@@ -54,6 +62,17 @@ public class ClaimController {
                 .map(ClaimResponse::fromDomain)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping
+    public ResponseEntity<ClaimResponse> submit(@Valid @RequestBody SubmitClaimRequest request) {
+        Claim claim = submitClaimUseCase.submit(
+                request.getClientId(),
+                request.getPolicyId(),
+                request.getDescription(),
+                request.getPhotoUrls()
+        );
+        return ResponseEntity.accepted().body(ClaimResponse.fromDomain(claim));
     }
 
     @GetMapping

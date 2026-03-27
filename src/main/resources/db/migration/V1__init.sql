@@ -3,7 +3,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS vector;
 
 -- Clients table
-CREATE TABLE IF NOT EXISTS clients (
+                CREATE TABLE IF NOT EXISTS clients (
                                        id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     full_name   VARCHAR(255) NOT NULL,
     email       VARCHAR(255) NOT NULL UNIQUE,
