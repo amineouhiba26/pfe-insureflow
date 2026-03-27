@@ -6,3 +6,4 @@ target/
 *.jar
 *.war
 application-local.yml
+/src/main/resources/application.yml
