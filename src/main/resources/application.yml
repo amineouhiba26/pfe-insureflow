@@ -89,7 +89,7 @@ langchain4j:
       timeout: 120s
 
 cloudinary:
-  cloud-name: ${CLOUDINARY_CLOUD_NAME}
-  api-key: ${CLOUDINARY_API_KEY}
-  api-secret: ${CLOUDINARY_API_SECRET}
+  cloud-name: dmqevyefl
+  api-key: 725835161811652
+  api-secret: HiW0b4EICK18UXWTMoJmmGuMTXQ
   folder: insureflow-claims
