@@ -127,7 +127,7 @@ public class EstimatorAgentService {
             CostEstimate         costs    = lookupCosts(elements);
 
             // Step 6: build enriched result merging LLM output + DB costs + image quality
-            String enrichedJson  = buildResultJson(json, costs, imageQuality);
+            String enrichedJson = buildResultJson(json, costs, imageQuality, claimType);
             double llmConfidence = ResponseParser.getDouble(json, "confidence", 0.5);
 
             return AgentResult.success(enrichedJson, llmConfidence, "");
@@ -146,10 +146,21 @@ public class EstimatorAgentService {
      * Falls back to "UNKNOWN" if RouterAgent hasn't finished yet.
      */
     private String resolveClaimType(ClaimEvent event) {
+        // Essaie d'abord depuis la DB (RouterAgent a déjà écrit)
         return claimRepository.findById(event.getClaimId())
                 .filter(c -> c.getType() != null)
                 .map(c -> c.getType().name())
-                .orElse("UNKNOWN");
+                .orElseGet(() -> {
+                    // Fallback — essaie de lire depuis le routerResult JSON
+                    try {
+                        return claimRepository.findById(event.getClaimId())
+                                .map(c -> com.insureflow.agent.shared.ResponseParser
+                                        .getString(c.getRouterResult(), "claimType", "UNKNOWN"))
+                                .orElse("UNKNOWN");
+                    } catch (Exception e) {
+                        return "UNKNOWN";
+                    }
+                });
     }
 
     /**
@@ -234,18 +245,19 @@ public class EstimatorAgentService {
      * Builds the final estimatorResult JSON stored in the claim row.
      * Merges: LLM identification output + DB cost lookup + image quality score.
      */
-    private String buildResultJson(String llmJson, CostEstimate costs, double imageQuality) {
+    private String buildResultJson(String llmJson, CostEstimate costs,
+                                   double imageQuality, String claimType) {
         try {
             JsonNode llm = mapper.readTree(llmJson);
 
-            String claimType       = llm.path("claimType").asText("UNKNOWN");
+            // Utilise le claimType du RouterAgent, pas celui hallucin par l'Estimator
             String overallSeverity = llm.path("overallSeverity").asText("MODERATE");
             String reasoning       = llm.path("reasoning").asText("");
             double confidence      = llm.path("confidence").asDouble(0.5);
 
             return mapper.writeValueAsString(
                     mapper.createObjectNode()
-                            .put("claimType",         claimType)
+                            .put("claimType",         claimType)  // ← forcé depuis Router
                             .put("overallSeverity",   overallSeverity)
                             .put("estimatedCostMin",  costs.min().toString())
                             .put("estimatedCostMax",  costs.max().toString())
@@ -255,9 +267,8 @@ public class EstimatorAgentService {
                             .put("reasoning",         reasoning)
                             .set("costBreakdown",     mapper.valueToTree(costs.breakdown()))
             );
-
         } catch (Exception e) {
-            log.warn("[ESTIMATOR] Could not build enriched JSON, returning raw: {}", e.getMessage());
+            log.warn("[ESTIMATOR] Could not build result JSON: {}", e.getMessage());
             return llmJson;
         }
     }
