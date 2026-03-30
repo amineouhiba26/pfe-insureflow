@@ -5,8 +5,8 @@ import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 import dev.langchain4j.service.spring.AiService;
 
-@AiService
-public interface EstimatorAgent {
+@AiService(wiringMode = dev.langchain4j.service.spring.AiServiceWiringMode.EXPLICIT,
+        chatModel = "chatLanguageModel")public interface EstimatorAgent {
 
     @SystemMessage("""
         Tu es un agent expert en évaluation de dommages pour une compagnie d'assurance.

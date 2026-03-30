@@ -27,8 +27,8 @@ import dev.langchain4j.service.spring.AiService;
  * Classification tasks need determinism. Low temperature = the model picks
  * the most probable token every time instead of being creative.
  */
-@AiService
-public interface RouterAgent {
+@AiService(wiringMode = dev.langchain4j.service.spring.AiServiceWiringMode.EXPLICIT,
+        chatModel = "chatLanguageModel")public interface RouterAgent {
 
     @SystemMessage("""
         Tu es un agent de classification de sinistres d'assurance.

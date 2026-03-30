@@ -22,22 +22,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * EstimatorAgentService — processes claim.estimated queue.
+ * EstimatorAgentService — traite la queue claim.estimated.
  *
- * Full workflow:
- * 1. Receive ClaimEvent from claim.estimated
- * 2. Update claim status → ESTIMATING
- * 3. Retrieve claimType from DB (set by RouterAgent)
- * 4. Evaluate image quality score
- * 5. Call EstimatorAgent with claimType + description + photoUrls
- * 6. Parse damaged elements from LLM response
- * 7. For each element+severity → query repair_costs table for price
- * 8. Sum costs, build enriched result JSON
- * 9. Write estimatorResult + estimatedCost to DB
- * 10. Publish to claim.fraud.checked to trigger FraudAgent
+ * Stratégie d'analyse :
+ * - Si photos disponibles → llama3.2-vision analyse les images réelles (VisionAnalysisService)
+ * - Si pas de photos ou vision échoue → llama3.1:8b raisonne sur la description textuelle
  *
- * Key principle: LLM identifies WHAT is damaged and HOW SEVERELY.
- * Numbers always come from repair_costs table — never from the LLM.
+ * Dans tous les cas : le LLM identifie les dommages, la DB fournit les prix.
  */
 @Service
 public class EstimatorAgentService {
@@ -45,6 +36,7 @@ public class EstimatorAgentService {
     private static final Logger log = LoggerFactory.getLogger(EstimatorAgentService.class);
 
     private final EstimatorAgent          estimatorAgent;
+    private final GeminiVisionService     geminiVisionService;
     private final RepairCostJpaRepository repairCostRepo;
     private final ClaimRepository         claimRepository;
     private final ImageQualityService     imageQualityService;
@@ -52,23 +44,21 @@ public class EstimatorAgentService {
     private final ObjectMapper            mapper = new ObjectMapper();
 
     public EstimatorAgentService(EstimatorAgent estimatorAgent,
-                                 RepairCostJpaRepository repairCostRepo,
+                                 GeminiVisionService geminiVisionService,                                 RepairCostJpaRepository repairCostRepo,
                                  ClaimRepository claimRepository,
                                  ImageQualityService imageQualityService,
                                  RabbitTemplate rabbitTemplate) {
-        this.estimatorAgent      = estimatorAgent;
-        this.repairCostRepo      = repairCostRepo;
-        this.claimRepository     = claimRepository;
-        this.imageQualityService = imageQualityService;
-        this.rabbitTemplate      = rabbitTemplate;
+        this.estimatorAgent       = estimatorAgent;
+        this.geminiVisionService = geminiVisionService;  // ← ici
+        this.repairCostRepo       = repairCostRepo;
+        this.claimRepository      = claimRepository;
+        this.imageQualityService  = imageQualityService;
+        this.rabbitTemplate       = rabbitTemplate;
     }
-
-    // ── RabbitMQ listener ─────────────────────────────────────────────────────
 
     @RabbitListener(queues = RabbitMQConfig.Q_ESTIMATED)
     public void onEstimated(ClaimEvent event) {
         log.info("[ESTIMATOR] Processing claimId={}", event.getClaimId());
-
         claimRepository.updateStatus(event.getClaimId(), ClaimStatus.ESTIMATING);
 
         AgentResult result = runEstimator(event);
@@ -76,215 +66,176 @@ public class EstimatorAgentService {
         claimRepository.findById(event.getClaimId()).ifPresent(claim -> {
             claim.setEstimatorResult(result.getResultJson());
             BigDecimal cost = parseTotalCost(result.getResultJson());
-            if (cost != null) {
-                claim.setEstimatedCost(cost);
-            }
+            if (cost != null) claim.setEstimatedCost(cost);
             claimRepository.save(claim);
         });
 
         log.info("[ESTIMATOR] Completed claimId={} confidence={}",
                 event.getClaimId(), result.getConfidence());
 
-        // Estimator always triggers Fraud — Fraud needs estimator findings
-        // to compare against the client's written description
         rabbitTemplate.convertAndSend(
-                RabbitMQConfig.EXCHANGE,
-                RabbitMQConfig.Q_FRAUD,
-                event
-        );
+                RabbitMQConfig.EXCHANGE, RabbitMQConfig.Q_FRAUD, event);
 
         log.info("[ESTIMATOR] Published to fraud queue for claimId={}", event.getClaimId());
     }
 
-    // ── Core logic ────────────────────────────────────────────────────────────
-
     public AgentResult runEstimator(ClaimEvent event) {
         try {
-            List<String> photoUrls = event.getPhotoUrls();
+            List<String> photoUrls  = event.getPhotoUrls();
+            double       imageScore = imageQualityService.evaluate(photoUrls);
+            String       claimType  = resolveClaimType(event);
 
-            // Step 1: image quality score — feeds into confidence formula later
-            double imageQuality = imageQualityService.evaluate(photoUrls);
-            log.debug("[ESTIMATOR] Image quality={} claimId={}", imageQuality, event.getClaimId());
+            log.debug("[ESTIMATOR] claimType={} imageScore={} photos={}",
+                    claimType, imageScore, photoUrls == null ? 0 : photoUrls.size());
 
-            // Step 2: get claimType already set by RouterAgent
-            // RouterAgent runs in parallel — by the time Estimator runs
-            // (triggered by Orchestrator fan-out + Estimator is slower than Router),
-            // the type is usually already set. Fallback to UNKNOWN if not yet.
-            String claimType = resolveClaimType(event);
+            String raw = null;
 
-            // Step 3: format photo URLs for the prompt
-            String photoUrlsStr = (photoUrls == null || photoUrls.isEmpty())
-                    ? "Aucune photo fournie"
-                    : String.join("\n", photoUrls);
+            // Stratégie 1 — Gemini Vision si photos disponibles
+            boolean hasPhotos = photoUrls != null && !photoUrls.isEmpty();
+            if (hasPhotos) {
+                log.info("[ESTIMATOR] Photos détectées — appel Gemini 1.5 Flash");
+                raw = geminiVisionService.analysePhotos(photoUrls, claimType);
+                if (raw != null) {
+                    log.info("[ESTIMATOR] Gemini Vision réussie pour claimId={}", event.getClaimId());
+                }
+            }
 
-            // Step 4: call LLM — identifies elements and severity, never prices
-            String raw  = estimatorAgent.analyse(claimType, event.getDescription(), photoUrlsStr);
+// Stratégie 2 — llama3.1:8b sur description textuelle (fallback si pas de photos ou Gemini échoue)
+            if (raw == null) {
+                log.info("[ESTIMATOR] Fallback sur analyse textuelle llama3.1:8b");
+                String photoUrlsStr = hasPhotos
+                        ? String.join("\n", photoUrls)
+                        : "Aucune photo fournie";
+                raw = estimatorAgent.analyse(claimType, event.getDescription(), photoUrlsStr);
+            }
+
             String json = ResponseParser.extractJson(raw);
-            log.debug("[ESTIMATOR] Raw LLM response: {}", raw);
+            log.debug("[ESTIMATOR] Raw response: {}", raw);
 
-            // Step 5: look up prices from DB for each identified element
             List<DamagedElement> elements = parseDamagedElements(json);
             CostEstimate         costs    = lookupCosts(elements);
+            String               enriched = buildResultJson(json, costs, imageScore, claimType);
+            double               conf     = ResponseParser.getDouble(json, "confidence", 0.5);
 
-            // Step 6: build enriched result merging LLM output + DB costs + image quality
-            String enrichedJson = buildResultJson(json, costs, imageQuality, claimType);
-            double llmConfidence = ResponseParser.getDouble(json, "confidence", 0.5);
-
-            return AgentResult.success(enrichedJson, llmConfidence, "");
+            return AgentResult.success(enriched, conf, "");
 
         } catch (Exception e) {
-            log.error("[ESTIMATOR] Agent failed claimId={}: {}",
-                    event.getClaimId(), e.getMessage());
+            log.error("[ESTIMATOR] Failed claimId={}: {}", event.getClaimId(), e.getMessage());
             return AgentResult.failure(e.getMessage());
         }
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────────
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
-    /**
-     * Reads the claimType already set by RouterAgent from DB.
-     * Falls back to "UNKNOWN" if RouterAgent hasn't finished yet.
-     */
     private String resolveClaimType(ClaimEvent event) {
-        // Essaie d'abord depuis la DB (RouterAgent a déjà écrit)
+        // Retry up to 5 times with 1s wait — Router may not have written yet
+        for (int i = 0; i < 5; i++) {
+            var claim = claimRepository.findById(event.getClaimId());
+            if (claim.isPresent() && claim.get().getType() != null) {
+                return claim.get().getType().name();
+            }
+            try {
+                log.debug("[ESTIMATOR] Waiting for RouterAgent to set claimType, attempt {}/5", i + 1);
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+
+        // Final fallback — read from routerResult JSON directly
         return claimRepository.findById(event.getClaimId())
-                .filter(c -> c.getType() != null)
-                .map(c -> c.getType().name())
-                .orElseGet(() -> {
-                    // Fallback — essaie de lire depuis le routerResult JSON
-                    try {
-                        return claimRepository.findById(event.getClaimId())
-                                .map(c -> com.insureflow.agent.shared.ResponseParser
-                                        .getString(c.getRouterResult(), "claimType", "UNKNOWN"))
-                                .orElse("UNKNOWN");
-                    } catch (Exception e) {
-                        return "UNKNOWN";
-                    }
-                });
+                .map(c -> ResponseParser.getString(c.getRouterResult(), "claimType", "UNKNOWN"))
+                .orElse("UNKNOWN");
     }
 
-    /**
-     * Parses the damagedElements array from the LLM JSON response.
-     * Supports both "damagedElements" and "damagedParts" keys for compatibility.
-     * Supports both "element" and "part" as the item key.
-     */
     private List<DamagedElement> parseDamagedElements(String json) {
         List<DamagedElement> elements = new ArrayList<>();
         try {
             JsonNode root = mapper.readTree(json);
-
-            // Support both field names
-            JsonNode arr = root.has("damagedElements")
+            JsonNode arr  = root.has("damagedElements")
                     ? root.get("damagedElements")
                     : root.get("damagedParts");
 
             if (arr == null || !arr.isArray()) return elements;
 
             for (JsonNode item : arr) {
-                // Support both "element" and "part" keys
                 String name = item.has("element")
                         ? item.path("element").asText("")
                         : item.path("part").asText("");
-
                 String severityStr = item.path("severity").asText("MINOR");
                 Severity severity  = parseSeverity(severityStr);
-
-                if (!name.isBlank()) {
-                    elements.add(new DamagedElement(name, severity));
-                }
+                if (!name.isBlank()) elements.add(new DamagedElement(name, severity));
             }
         } catch (Exception e) {
-            log.warn("[ESTIMATOR] Could not parse damaged elements: {}", e.getMessage());
+            log.warn("[ESTIMATOR] Could not parse elements: {}", e.getMessage());
         }
         return elements;
     }
 
-    /**
-     * Looks up the repair_costs table for each damaged element.
-     * Sums min and max costs across all elements.
-     *
-     * If an element has no match in repair_costs (e.g. "hospitalization"),
-     * it logs a warning and skips — the claim still processes normally.
-     * The cost will be 0 for unmatched elements.
-     */
     private CostEstimate lookupCosts(List<DamagedElement> elements) {
         BigDecimal   totalMin  = BigDecimal.ZERO;
         BigDecimal   totalMax  = BigDecimal.ZERO;
         List<String> breakdown = new ArrayList<>();
 
         for (DamagedElement el : elements) {
+            String nameFr     = translatePart(el.name());
+            String severityFr = translateSeverity(el.severity().name());
+
             var found = repairCostRepo
                     .findByPartNameIgnoreCaseAndSeverity(el.name(), el.severity());
 
             if (found.isPresent()) {
                 var rc = found.get();
-                // BigDecimal.add() returns a new value — must reassign
                 totalMin = totalMin.add(rc.getMinCost());
                 totalMax = totalMax.add(rc.getMaxCost());
-                breakdown.add(String.format("%s (%s): %s–%s DT",
-                        rc.getPartName(), rc.getSeverity(),
-                        rc.getMinCost(), rc.getMaxCost()));
-                log.debug("[ESTIMATOR] {} {} → {}-{} DT",
-                        el.name(), el.severity(), rc.getMinCost(), rc.getMaxCost());
+                breakdown.add(String.format("%s (%s) : %s–%s DT",
+                        nameFr, severityFr, rc.getMinCost(), rc.getMaxCost()));
             } else {
-                log.warn("[ESTIMATOR] No repair cost entry for element='{}' severity={}",
-                        el.name(), el.severity());
-                breakdown.add(String.format("%s (%s): coût non référencé",
-                        el.name(), el.severity()));
+                log.warn("[ESTIMATOR] Aucun prix pour '{}' {}", el.name(), el.severity());
+                breakdown.add(String.format("%s (%s) : coût non référencé", nameFr, severityFr));
             }
         }
 
-        // Midpoint of the range as the single estimated cost
         BigDecimal midpoint = totalMin.add(totalMax)
                 .divide(BigDecimal.valueOf(2), 2, RoundingMode.HALF_UP);
 
         return new CostEstimate(totalMin, totalMax, midpoint, breakdown);
     }
 
-    /**
-     * Builds the final estimatorResult JSON stored in the claim row.
-     * Merges: LLM identification output + DB cost lookup + image quality score.
-     */
     private String buildResultJson(String llmJson, CostEstimate costs,
                                    double imageQuality, String claimType) {
         try {
-            JsonNode llm = mapper.readTree(llmJson);
-
-            // Utilise le claimType du RouterAgent, pas celui hallucin par l'Estimator
+            JsonNode llm           = mapper.readTree(llmJson);
             String overallSeverity = llm.path("overallSeverity").asText("MODERATE");
             String reasoning       = llm.path("reasoning").asText("");
             double confidence      = llm.path("confidence").asDouble(0.5);
 
             return mapper.writeValueAsString(
                     mapper.createObjectNode()
-                            .put("claimType",         claimType)  // ← forcé depuis Router
+                            .put("claimType",         claimType)
                             .put("overallSeverity",   overallSeverity)
                             .put("estimatedCostMin",  costs.min().toString())
                             .put("estimatedCostMax",  costs.max().toString())
                             .put("estimatedCost",     costs.midpoint().toString())
                             .put("imageQualityScore", imageQuality)
+                            .put("analysisMethod", "gemini-vision")
                             .put("confidence",        confidence)
                             .put("reasoning",         reasoning)
                             .set("costBreakdown",     mapper.valueToTree(costs.breakdown()))
             );
         } catch (Exception e) {
-            log.warn("[ESTIMATOR] Could not build result JSON: {}", e.getMessage());
+            log.warn("[ESTIMATOR] buildResultJson failed: {}", e.getMessage());
             return llmJson;
         }
     }
 
-    /**
-     * Extracts the estimatedCost field from the enriched result JSON.
-     * Used to set claim.estimatedCost in the DB for DecisionMatrix rule 5.
-     */
-    private BigDecimal parseTotalCost(String resultJson) {
+    private BigDecimal parseTotalCost(String json) {
         try {
-            JsonNode node = mapper.readTree(resultJson);
-            String   cost = node.path("estimatedCost").asText(null);
+            String cost = mapper.readTree(json).path("estimatedCost").asText(null);
             if (cost == null || cost.equals("null")) return null;
             return new BigDecimal(cost);
         } catch (Exception e) {
-            log.warn("[ESTIMATOR] Could not parse estimatedCost: {}", e.getMessage());
             return null;
         }
     }
@@ -293,18 +244,72 @@ public class EstimatorAgentService {
         try {
             return Severity.valueOf(value.toUpperCase().trim());
         } catch (IllegalArgumentException e) {
-            log.warn("[ESTIMATOR] Unknown severity '{}', defaulting to MINOR", value);
             return Severity.MINOR;
         }
+    }
+
+    // ── Traductions ───────────────────────────────────────────────────────────
+
+    private static final java.util.Map<String, String> PART_TRANSLATIONS =
+            java.util.Map.ofEntries(
+                    java.util.Map.entry("front bumper",       "Pare-choc avant"),
+                    java.util.Map.entry("rear bumper",        "Pare-choc arrière"),
+                    java.util.Map.entry("hood",               "Capot"),
+                    java.util.Map.entry("trunk",              "Coffre"),
+                    java.util.Map.entry("door",               "Portière"),
+                    java.util.Map.entry("windshield",         "Pare-brise"),
+                    java.util.Map.entry("rear window",        "Lunette arrière"),
+                    java.util.Map.entry("side mirror",        "Rétroviseur"),
+                    java.util.Map.entry("headlight",          "Phare avant"),
+                    java.util.Map.entry("taillight",          "Feu arrière"),
+                    java.util.Map.entry("wheel",              "Roue"),
+                    java.util.Map.entry("roof",               "Toit"),
+                    java.util.Map.entry("engine",             "Moteur"),
+                    java.util.Map.entry("chassis",            "Châssis"),
+                    java.util.Map.entry("wall",               "Mur"),
+                    java.util.Map.entry("floor",              "Sol"),
+                    java.util.Map.entry("window",             "Fenêtre"),
+                    java.util.Map.entry("kitchen",            "Cuisine"),
+                    java.util.Map.entry("bathroom",           "Salle de bain"),
+                    java.util.Map.entry("electrical system",  "Installation électrique"),
+                    java.util.Map.entry("furniture",          "Mobilier"),
+                    java.util.Map.entry("appliances",         "Appareils électroménagers"),
+                    java.util.Map.entry("facade",             "Façade"),
+                    java.util.Map.entry("ceiling",            "Plafond"),
+                    java.util.Map.entry("foundation",         "Fondations"),
+                    java.util.Map.entry("plumbing",           "Plomberie"),
+                    java.util.Map.entry("hospitalization",    "Hospitalisation"),
+                    java.util.Map.entry("surgery",            "Chirurgie"),
+                    java.util.Map.entry("medication",         "Médicaments"),
+                    java.util.Map.entry("rehabilitation",     "Rééducation"),
+                    java.util.Map.entry("laptop",             "Ordinateur portable"),
+                    java.util.Map.entry("phone",              "Téléphone"),
+                    java.util.Map.entry("jewelry",            "Bijoux"),
+                    java.util.Map.entry("vehicle",            "Véhicule"),
+                    java.util.Map.entry("bicycle",            "Vélo"),
+                    java.util.Map.entry("tools",              "Outils")
+            );
+
+    private static final java.util.Map<String, String> SEVERITY_TRANSLATIONS =
+            java.util.Map.of(
+                    "MINOR",      "Mineur",
+                    "MODERATE",   "Modéré",
+                    "SEVERE",     "Grave",
+                    "TOTAL_LOSS", "Perte totale"
+            );
+
+    private String translatePart(String name) {
+        return PART_TRANSLATIONS.getOrDefault(name.toLowerCase().trim(), name);
+    }
+
+    private String translateSeverity(String severity) {
+        return SEVERITY_TRANSLATIONS.getOrDefault(severity, severity);
     }
 
     // ── Inner records ─────────────────────────────────────────────────────────
 
     private record DamagedElement(String name, Severity severity) {}
 
-    private record CostEstimate(
-            BigDecimal   min,
-            BigDecimal   max,
-            BigDecimal   midpoint,
-            List<String> breakdown) {}
+    private record CostEstimate(BigDecimal min, BigDecimal max,
+                                BigDecimal midpoint, List<String> breakdown) {}
 }

@@ -21,4 +21,14 @@ public class LangChain4jConfig {
                 .timeout(Duration.ofSeconds(120))
                 .build();
     }
+
+    @Bean("visionModel")
+    public ChatLanguageModel visionModel() {
+        return OllamaChatModel.builder()
+                .baseUrl("http://localhost:11434")
+                .modelName("llama3.2-vision")
+                .temperature(0.1)
+                .timeout(Duration.ofSeconds(380))
+                .build();
+    }
 }

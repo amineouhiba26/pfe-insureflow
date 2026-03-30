@@ -12,8 +12,8 @@ import dev.langchain4j.service.spring.AiService;
  * and description → {{description}}.
  * With @V("name"), the mapping is explicit and unambiguous.
  */
-@AiService
-public interface ValidatorAgent {
+@AiService(wiringMode = dev.langchain4j.service.spring.AiServiceWiringMode.EXPLICIT,
+        chatModel = "chatLanguageModel")public interface ValidatorAgent {
 
     @SystemMessage("""
         Tu es un agent expert en analyse de contrats d’assurance.
