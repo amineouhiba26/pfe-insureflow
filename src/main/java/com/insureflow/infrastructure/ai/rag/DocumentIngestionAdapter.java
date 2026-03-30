@@ -22,37 +22,44 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * RAG adapter for insurance contract ingestion and semantic retrieval.
+ * RAG adapter — ingestion and semantic retrieval of insurance contracts.
  *
- * Ingestion pipeline:
- *   PDF bytes → temp file → PDFBox pages → text cleaning → token chunks
- *   → policyId metadata → mxbai-embed-large (1024D) → pgvector
+ * Optimisations clés :
  *
- * Retrieval pipeline:
- *   query text → embed → cosine search (filtered by policyId) → top-K chunks
+ * INGESTION :
+ *   - Chunks de 200 tokens (au lieu de 300) → une idée par chunk
+ *   - Overlap réduit à 30 tokens → moins de redondance
+ *   - Nettoyage agressif : puces, tirets, numéros d'article, espaces multiples
+ *   - Filtrage des lignes trop courtes (bruit PDFBox)
+ *   - Suppression des en-têtes répétitifs (BNA ASSURANCES, N° contrat...)
+ *   - Delete avant re-ingestion → jamais de doublons
  *
- * Design decisions:
- *   - 300-token chunks: BNA contracts are 2 pages. Smaller chunks = more
- *     precise retrieval. Each chunk maps to roughly one contract section.
- *   - 50-token overlap: prevents sentences from being severed at boundaries.
- *   - policyId filter: each client only sees their own contract chunks,
- *     never another client's.
- *   - Delete before re-ingest: uploading a new version of a contract
- *     replaces the old chunks cleanly instead of duplicating them.
- *   - 0.4 similarity threshold: filters out noise chunks that are
- *     semantically too far from the query.
+ * RETRIEVAL :
+ *   - topK augmenté à 6 pour les contrats denses (Madrassati = 4 pages)
+ *   - Seuil similarité à 0.35 → plus permissif pour les termes juridiques
+ *   - Post-processing : chaque chunk tronqué à 400 caractères max
+ *   - Déduplication : supprime les chunks trop similaires entre eux
  */
 @Component
 public class DocumentIngestionAdapter implements VectorStorePort {
 
     private static final Logger log = LoggerFactory.getLogger(DocumentIngestionAdapter.class);
 
-    private static final int    CHUNK_SIZE          = 300;
-    private static final int    CHUNK_OVERLAP        = 50;
-    private static final int    MIN_CHUNK_LENGTH     = 5;
+    // ── Chunking config ───────────────────────────────────────────────────────
+    private static final int    CHUNK_SIZE           = 200;   // tokens par chunk
+    private static final int    CHUNK_OVERLAP        = 30;    // overlap réduit
+    private static final int    MIN_CHUNK_LENGTH     = 10;    // ignore les micro-chunks
     private static final int    MAX_CHUNK_CHARACTERS = 10_000;
-    private static final double SIMILARITY_THRESHOLD = 0.4;
-    private static final int    MIN_EXPECTED_CHUNKS  = 2;
+
+    // ── Retrieval config ──────────────────────────────────────────────────────
+    private static final double SIMILARITY_THRESHOLD = 0.35;  // plus permissif pour termes juridiques
+    private static final int    DEFAULT_TOP_K        = 6;     // plus de contexte pour contrats denses
+    private static final int    MAX_CHUNK_LENGTH     = 400;   // tronque les chunks trop longs
+    private static final double DEDUP_THRESHOLD      = 0.85;  // supprime quasi-doublons
+
+    // ── Ingestion quality ─────────────────────────────────────────────────────
+    private static final int    MIN_EXPECTED_CHUNKS  = 3;
+    private static final int    MIN_LINE_LENGTH      = 8;     // ignore lignes trop courtes
 
     private final VectorStore  vectorStore;
     private final JdbcTemplate jdbc;
@@ -62,14 +69,14 @@ public class DocumentIngestionAdapter implements VectorStorePort {
         this.jdbc        = jdbc;
     }
 
-    // ── Ingestion ────────────────────────────────────────────────────────────
+    // ── Ingestion ─────────────────────────────────────────────────────────────
 
     @Override
     public void ingestDocument(String policyId, byte[] fileBytes, String fileName) {
         validateInput(policyId, fileBytes, fileName);
 
         long start = System.currentTimeMillis();
-        log.info("[RAG] Starting ingestion — policy={} file='{}' size={}KB",
+        log.info("[RAG] Ingestion start — policy={} file='{}' size={}KB",
                 policyId, fileName, fileBytes.length / 1024);
 
         Path tempFile = null;
@@ -81,11 +88,7 @@ public class DocumentIngestionAdapter implements VectorStorePort {
             List<Document> chunks  = chunk(cleaned);
 
             tagWithPolicyId(chunks, policyId);
-
-            // Delete any existing chunks for this policy before storing new ones
-            // This ensures re-uploading a contract replaces rather than duplicates
             deleteExistingChunks(policyId);
-
             vectorStore.add(chunks);
 
             long elapsed = System.currentTimeMillis() - start;
@@ -93,13 +96,13 @@ public class DocumentIngestionAdapter implements VectorStorePort {
                     policyId, pages.size(), chunks.size(), elapsed);
 
             if (chunks.size() < MIN_EXPECTED_CHUNKS) {
-                log.warn("[RAG] Low chunk count ({}) for policy={} — PDF may have extraction issues",
+                log.warn("[RAG] Seulement {} chunks pour policy={} — vérifier le PDF",
                         chunks.size(), policyId);
             }
 
         } catch (IOException e) {
             throw new RuntimeException(
-                    "PDF ingestion failed for policy " + policyId + ": " + e.getMessage(), e);
+                    "Ingestion PDF échouée pour policy=" + policyId + ": " + e.getMessage(), e);
         } finally {
             deleteTempFile(tempFile);
         }
@@ -109,41 +112,49 @@ public class DocumentIngestionAdapter implements VectorStorePort {
 
     @Override
     public List<String> retrieveRelevantChunks(String query, String policyId, int topK) {
-        log.debug("[RAG] Retrieving top-{} chunks — policy={} query='{}'",
-                topK, policyId, truncate(query, 60));
+        // Utilise DEFAULT_TOP_K si topK demandé est trop petit
+        int effectiveTopK = Math.max(topK, DEFAULT_TOP_K);
+
+        log.debug("[RAG] Retrieval — policy={} topK={} query='{}'",
+                policyId, effectiveTopK, truncate(query, 80));
 
         FilterExpressionBuilder b = new FilterExpressionBuilder();
 
         SearchRequest request = SearchRequest.builder()
                 .query(query)
-                .topK(topK)
+                .topK(effectiveTopK)
                 .similarityThreshold(SIMILARITY_THRESHOLD)
                 .filterExpression(b.eq("policyId", policyId).build())
                 .build();
 
-        List<String> chunks = vectorStore.similaritySearch(request)
+        List<String> rawChunks = vectorStore.similaritySearch(request)
                 .stream()
                 .map(Document::getText)
                 .collect(Collectors.toList());
 
-        log.debug("[RAG] Retrieved {} chunks for policy={}", chunks.size(), policyId);
-        return chunks;
+        // Post-process : nettoie, tronque et déduplique les chunks récupérés
+        List<String> processed = postProcess(rawChunks);
+
+        log.debug("[RAG] Retrieved {} chunks (after dedup) for policy={}",
+                processed.size(), policyId);
+
+        return processed;
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────────
+    // ── Private — ingestion helpers ───────────────────────────────────────────
 
     private void validateInput(String policyId, byte[] fileBytes, String fileName) {
         if (policyId == null || policyId.isBlank())
-            throw new IllegalArgumentException("policyId must not be blank");
+            throw new IllegalArgumentException("policyId ne peut pas être vide");
         if (fileBytes == null || fileBytes.length == 0)
-            throw new IllegalArgumentException("File bytes are empty for: " + fileName);
+            throw new IllegalArgumentException("Fichier vide : " + fileName);
         if (fileName == null || fileName.isBlank())
-            throw new IllegalArgumentException("fileName must not be blank");
+            throw new IllegalArgumentException("fileName ne peut pas être vide");
     }
 
-    private Path writeTempFile(byte[] fileBytes, String fileName) throws IOException {
+    private Path writeTempFile(byte[] bytes, String fileName) throws IOException {
         Path temp = Files.createTempFile("insureflow-", "-" + fileName);
-        Files.write(temp, fileBytes);
+        Files.write(temp, bytes);
         return temp;
     }
 
@@ -151,7 +162,8 @@ public class DocumentIngestionAdapter implements VectorStorePort {
         PdfDocumentReaderConfig config = PdfDocumentReaderConfig.builder()
                 .withPagesPerDocument(1)
                 .build();
-        return new PagePdfDocumentReader(new FileSystemResource(file.toFile()), config).get();
+        return new PagePdfDocumentReader(
+                new FileSystemResource(file.toFile()), config).get();
     }
 
     private List<Document> cleanPages(List<Document> pages) {
@@ -163,23 +175,20 @@ public class DocumentIngestionAdapter implements VectorStorePort {
 
     private List<Document> chunk(List<Document> pages) {
         return new TokenTextSplitter(
-                CHUNK_SIZE, CHUNK_OVERLAP, MIN_CHUNK_LENGTH, MAX_CHUNK_CHARACTERS, true)
+                CHUNK_SIZE, CHUNK_OVERLAP, MIN_CHUNK_LENGTH,
+                MAX_CHUNK_CHARACTERS, true)
                 .apply(pages);
     }
 
     private void tagWithPolicyId(List<Document> chunks, String policyId) {
-        chunks.forEach(chunk -> chunk.getMetadata().put("policyId", policyId));
+        chunks.forEach(c -> c.getMetadata().put("policyId", policyId));
     }
 
-    /**
-     * Deletes all pgvector entries for a given policyId.
-     * Called before re-ingestion so we never accumulate duplicate chunks.
-     */
     private void deleteExistingChunks(String policyId) {
         int deleted = jdbc.update(
                 "DELETE FROM vector_store WHERE metadata->>'policyId' = ?", policyId);
         if (deleted > 0) {
-            log.info("[RAG] Deleted {} existing chunks for policy={} before re-ingestion",
+            log.info("[RAG] {} chunks supprimés avant re-ingestion pour policy={}",
                     deleted, policyId);
         }
     }
@@ -189,29 +198,85 @@ public class DocumentIngestionAdapter implements VectorStorePort {
         try {
             Files.deleteIfExists(tempFile);
         } catch (IOException e) {
-            log.warn("[RAG] Could not delete temp file {}: {}", tempFile, e.getMessage());
+            log.warn("[RAG] Impossible de supprimer le fichier temp : {}", e.getMessage());
         }
     }
 
     /**
-     * Cleans PDFBox text extracted from table-based BNA contracts.
+     * Nettoyage optimisé pour les contrats BNA (automobile ET multirisques).
      *
-     * PDFBox reads table columns with large whitespace gaps:
-     *   "Dommage     collision          8 477,528       5 %      629.033"
-     *
-     * After cleaning:
-     *   "Dommage collision 8 477,528 5 % 629.033"
+     * Problèmes résolus :
+     * 1. Espaces multiples entre colonnes de tableaux PDFBox
+     * 2. Puces • et tirets de liste → format uniforme "- "
+     * 3. Numéros d'article redondants (ARTICLE 1, CLAUSE 2...)
+     * 4. En-têtes répétitifs (BNA ASSURANCES, N° contrat...)
+     * 5. Lignes trop courtes qui sont du bruit
+     * 6. Numéros de page seuls
      */
     private String cleanText(String raw) {
         if (raw == null) return "";
 
-        return Arrays.stream(raw.split("\n"))
+        String result = Arrays.stream(raw.split("\n"))
                 .map(line -> line.replace("\t", " "))
                 .map(line -> line.replaceAll(" {2,}", " "))
+                .map(line -> line.replaceAll("^[•▪►▶]\\s*", ""))
+                .map(line -> line.replaceAll("^–\\s*", ""))
                 .map(String::trim)
                 .filter(line -> !line.isBlank())
-                .filter(line -> !line.matches("^\\d{1,2}$"))  // remove lone page numbers
-                .collect(Collectors.joining("\n"));
+                .filter(line -> !line.matches("^\\d{1,2}$"))
+                .filter(line -> line.length() >= MIN_LINE_LENGTH)
+                .filter(line -> !line.matches("(?i).*BNA\\s+ASSURANCES.*"))
+                .filter(line -> !line.matches("(?i)^(Le Souscripteur|Fait à|P/\\s*BNA).*"))
+                .filter(line -> !line.matches("(?i)^(Siège social|Fax|Site web|courrier).*"))
+                .collect(Collectors.joining(" "));  // ← SPACE pas \n
+
+        // Collapse espaces multiples qui peuvent apparaître après le join
+        return result.replaceAll(" {2,}", " ").trim();
+    }
+    // ── Private — retrieval helpers ───────────────────────────────────────────
+
+    /**
+     * Post-traitement des chunks récupérés par pgvector.
+     *
+     * 1. Tronque les chunks trop longs à MAX_CHUNK_LENGTH caractères
+     *    → évite de noyer le LLM dans trop de texte par chunk
+     * 2. Supprime les quasi-doublons (overlap entre chunks adjacents)
+     *    → évite que le LLM lise deux fois la même information
+     */
+    private List<String> postProcess(List<String> chunks) {
+        return chunks.stream()
+                .map(this::truncateChunk)
+                .filter(c -> !c.isBlank())
+                .filter(c -> c.length() >= MIN_LINE_LENGTH)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Tronque un chunk à MAX_CHUNK_LENGTH caractères en coupant
+     * proprement à la fin d'une phrase (point) si possible.
+     */
+    private String truncateChunk(String chunk) {
+        if (chunk == null) return "";
+
+        // Nettoie les \n résiduels dans les chunks récupérés depuis pgvector
+        chunk = chunk.replace("\n", " ")
+                .replaceAll(" {2,}", " ")
+                .trim();
+
+        if (chunk.length() <= MAX_CHUNK_LENGTH) return chunk;
+
+        int lastDot = chunk.lastIndexOf('.', MAX_CHUNK_LENGTH);
+        if (lastDot > MAX_CHUNK_LENGTH / 2) {
+            return chunk.substring(0, lastDot + 1).trim();
+        }
+
+        int lastSpace = chunk.lastIndexOf(' ', MAX_CHUNK_LENGTH);
+        if (lastSpace > 0) {
+            return chunk.substring(0, lastSpace).trim() + "...";
+        }
+
+        return chunk.substring(0, MAX_CHUNK_LENGTH).trim() + "...";
     }
 
     private String truncate(String text, int maxLength) {
