@@ -184,19 +184,21 @@ public class EstimatorAgentService {
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private String resolveClaimType(ClaimEvent event) {
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 15; i++) {  // 15 attempts × 1s = 15s max wait
             var claim = claimRepository.findById(event.getClaimId());
             if (claim.isPresent() && claim.get().getType() != null) {
+                log.debug("[ESTIMATOR] claimType resolved: {} after {}s",
+                        claim.get().getType().name(), i);
                 return claim.get().getType().name();
             }
             try {
-                log.debug("[ESTIMATOR] Waiting for RouterAgent attempt {}/5", i + 1);
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
             }
         }
+        // Final fallback from routerResult JSON
         return claimRepository.findById(event.getClaimId())
                 .map(c -> ResponseParser.getString(c.getRouterResult(), "claimType", "UNKNOWN"))
                 .orElse("UNKNOWN");

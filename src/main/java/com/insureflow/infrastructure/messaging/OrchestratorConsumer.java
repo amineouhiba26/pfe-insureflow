@@ -72,51 +72,54 @@ public class OrchestratorConsumer {
      */
     @RabbitListener(queues = RabbitMQConfig.Q_DECISION)
     public void onDecision(ClaimEvent event) {
-        log.info("[ORCHESTRATOR] Running DecisionMatrix for claimId={}", event.getClaimId());
+        log.info("[ORCHESTRATOR] onDecision received claimId={}", event.getClaimId());
+        try {
+            Claim claim = claimRepository.findById(event.getClaimId()).orElse(null);
 
-        Claim claim = claimRepository.findById(event.getClaimId())
-                .orElse(null);
+            if (claim == null) {
+                log.error("[ORCHESTRATOR] Claim not found: {}", event.getClaimId());
+                return;
+            }
 
-        if (claim == null) {
-            log.error("[ORCHESTRATOR] Claim not found: {}", event.getClaimId());
-            return;
+            // Compute composite confidence
+            double confidence = confidenceCalculator.compute(claim);
+            claim.setConfidenceScore(confidence);
+
+            // Run decision matrix
+            DecisionResult result = decisionMatrix.evaluate(claim, confidence);
+            log.info("[ORCHESTRATOR] Decision={} reason='{}'",
+                    result.decision(), result.reason());
+
+            // Update claim status
+            ClaimStatus finalStatus = switch (result.decision()) {
+                case APPROVED       -> ClaimStatus.APPROVED;
+                case REJECTED       -> ClaimStatus.REJECTED;
+                case PENDING_REVIEW -> ClaimStatus.PENDING_REVIEW;
+            };
+
+            if (result.decision() == Decision.REJECTED) {
+                claim.setRejectionReason(result.reason());
+            }
+
+            claim.transitionTo(finalStatus);
+            claimRepository.save(claim);
+
+            // Create human review task if needed
+            if (result.decision() == Decision.PENDING_REVIEW) {
+                HumanReviewTask reviewTask = HumanReviewTask.createFor(
+                        claim.getId(), result.reason());
+                reviewRepository.save(reviewTask);
+                log.info("[ORCHESTRATOR] HumanReviewTask created for claimId={}",
+                        event.getClaimId());
+            }
+
+            log.info("[ORCHESTRATOR] Pipeline complete — claimId={} status={}",
+                    event.getClaimId(), finalStatus);
+
+        } catch (Exception e) {
+            log.error("[ORCHESTRATOR] onDecision FAILED for claimId={}: {}",
+                    event.getClaimId(), e.getMessage(), e);
         }
-
-        // Compute composite confidence
-        double confidence = confidenceCalculator.compute(claim);
-        claim.setConfidenceScore(confidence);
-
-        // Run decision matrix
-        DecisionResult result = decisionMatrix.evaluate(claim, confidence);
-
-        log.info("[ORCHESTRATOR] Decision for claimId={}: {} — reason: {}",
-                event.getClaimId(), result.decision(), result.reason());
-
-        // Update claim status
-        ClaimStatus finalStatus = switch (result.decision()) {
-            case APPROVED       -> ClaimStatus.APPROVED;
-            case REJECTED       -> ClaimStatus.REJECTED;
-            case PENDING_REVIEW -> ClaimStatus.PENDING_REVIEW;
-        };
-
-        if (result.decision() == Decision.REJECTED) {
-            claim.setRejectionReason(result.reason());
-        }
-
-        claim.transitionTo(finalStatus);
-        claimRepository.save(claim);
-
-        // Create human review task if needed
-        if (result.decision() == Decision.PENDING_REVIEW) {
-            HumanReviewTask reviewTask = HumanReviewTask.createFor(
-                    claim.getId(), result.reason());
-            reviewRepository.save(reviewTask);
-            log.info("[ORCHESTRATOR] HumanReviewTask created for claimId={}",
-                    event.getClaimId());
-        }
-
-        log.info("[ORCHESTRATOR] Pipeline complete — claimId={} status={}",
-                event.getClaimId(), finalStatus);
     }
 
     private static final String EXCHANGE    = RabbitMQConfig.EXCHANGE;

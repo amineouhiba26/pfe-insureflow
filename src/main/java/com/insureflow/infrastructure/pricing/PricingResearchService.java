@@ -260,6 +260,12 @@ public class PricingResearchService {
                 long min = Long.parseLong(matcher.group(1).replace(",", ""));
                 long max = Long.parseLong(matcher.group(2).replace(",", ""));
 
+                // Filter out years (1900-2030) — Tavily often returns article years
+                boolean minIsYear = min >= 1900 && min <= 2030;
+                boolean maxIsYear = max >= 1900 && max <= 2030;
+                if (minIsYear || maxIsYear) continue;
+
+                // Filter: min >= 100 TND, max <= 150,000, ratio <= 10
                 if (min >= MIN_REALISTIC_PRICE
                         && max <= MAX_REALISTIC_PRICE
                         && max > min
@@ -271,7 +277,7 @@ public class PricingResearchService {
 
         if (ranges.isEmpty()) return Optional.empty();
 
-        // Pick range with highest min — most likely the full repair cost
+        // Pick highest min — avoids partial costs
         long[] best = ranges.stream()
                 .max(Comparator.comparingLong(r -> r[0]))
                 .orElse(ranges.get(0));
@@ -279,7 +285,7 @@ public class PricingResearchService {
         BigDecimal min = BigDecimal.valueOf(best[0]);
         BigDecimal max = BigDecimal.valueOf(best[1]);
         BigDecimal mid = min.add(max)
-                .divide(BigDecimal.valueOf(2), 2, RoundingMode.HALF_UP);
+                           .divide(BigDecimal.valueOf(2), 2, RoundingMode.HALF_UP);
 
         log.info("[PRICING] Range extracted: {}-{} TND [{}]", min, max, source);
         return Optional.of(new PriceRange(min, max, mid, "pièces + main d'œuvre", source));
