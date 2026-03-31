@@ -40,7 +40,8 @@ public class ClaimEventPublisherAdapter implements ClaimEventPublisher {
                 claim.getPolicyId(),
                 claim.getDescription(),
                 claim.getPhotoUrls(),
-                claim.getSubmittedAt()
+                claim.getSubmittedAt(),
+                claim.getClientEstimatedCost()
         );
 
         rabbitTemplate.convertAndSend(

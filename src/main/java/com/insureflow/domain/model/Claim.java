@@ -43,6 +43,8 @@ public class Claim {
     private ClaimStatus status;
     private String description;
     private List<String> photoUrls;
+    private BigDecimal clientEstimatedCost;
+
 
     // Agent result snapshots — raw JSON from each agent
     private String routerResult;
@@ -124,4 +126,6 @@ public class Claim {
     public void setSubmittedAt(Instant submittedAt) { this.submittedAt = submittedAt; }
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+    public BigDecimal getClientEstimatedCost() { return clientEstimatedCost; }
+    public void setClientEstimatedCost(BigDecimal v) { this.clientEstimatedCost = v; }
 }

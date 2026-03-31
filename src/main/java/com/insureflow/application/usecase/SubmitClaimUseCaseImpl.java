@@ -6,6 +6,7 @@ import com.insureflow.domain.port.out.ClaimEventPublisher;
 import com.insureflow.domain.port.out.ClaimRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,10 +33,12 @@ public class SubmitClaimUseCaseImpl implements SubmitClaimUseCase {
 
     @Override
     public Claim submit(UUID clientId, UUID policyId,
-                        String description, List<String> photoUrls) {
+                        String description, List<String> photoUrls,
+                        BigDecimal clientEstimatedCost) {
         Claim claim = Claim.newSubmission(clientId, policyId, description, photoUrls);
-        Claim saved = claimRepository.save(claim);          // 1. persist first
-        eventPublisher.publishSubmitted(saved);              // 2. then publish
+        claim.setClientEstimatedCost(clientEstimatedCost);
+        Claim saved = claimRepository.save(claim);
+        eventPublisher.publishSubmitted(saved);
         return saved;
     }
 }

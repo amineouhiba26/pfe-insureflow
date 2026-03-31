@@ -1,0 +1,1 @@
+ALTER TABLE claims ADD COLUMN IF NOT EXISTS client_estimated_cost NUMERIC(15,2);

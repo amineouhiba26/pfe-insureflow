@@ -1,5 +1,6 @@
 package com.insureflow.infrastructure.messaging;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -29,12 +30,14 @@ public class ClaimEvent {
     private String description;
     private List<String> photoUrls;
     private Instant submittedAt;
+    private BigDecimal clientEstimatedCost;
+
 
     public ClaimEvent() {}
 
     public ClaimEvent(UUID claimId, UUID clientId, UUID policyId,
                       String description, List<String> photoUrls,
-                      Instant submittedAt) {
+                      Instant submittedAt , BigDecimal ClientEstimatedCost) {
         this.correlationId = claimId; // correlation = claim id for simplicity
         this.claimId       = claimId;
         this.clientId      = clientId;
@@ -42,6 +45,7 @@ public class ClaimEvent {
         this.description   = description;
         this.photoUrls     = photoUrls;
         this.submittedAt   = submittedAt;
+        this.clientEstimatedCost = clientEstimatedCost;
     }
 
     public UUID getCorrelationId() { return correlationId; }
@@ -58,4 +62,6 @@ public class ClaimEvent {
     public void setPhotoUrls(List<String> photoUrls) { this.photoUrls = photoUrls; }
     public Instant getSubmittedAt() { return submittedAt; }
     public void setSubmittedAt(Instant submittedAt) { this.submittedAt = submittedAt; }
+    public BigDecimal getClientEstimatedCost() { return clientEstimatedCost; }
+    public void setClientEstimatedCost(BigDecimal v) { this.clientEstimatedCost = v; }
 }
