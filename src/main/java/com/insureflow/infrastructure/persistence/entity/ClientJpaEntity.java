@@ -48,6 +48,7 @@ public class ClientJpaEntity {
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;
 
+
     public ClientJpaEntity() {}
 
     public UUID getId() { return id; }
@@ -62,4 +63,5 @@ public class ClientJpaEntity {
     public void setNationalId(String nationalId) { this.nationalId = nationalId; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+
 }

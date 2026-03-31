@@ -2,6 +2,7 @@ package com.insureflow.domain.port.in;
 
 import com.insureflow.domain.model.Claim;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,5 +15,6 @@ import java.util.UUID;
  */
 public interface SubmitClaimUseCase {
     Claim submit(UUID clientId, UUID policyId,
-                 String description, List<String> photoUrls);
+                 String description, List<String> photoUrls,
+                 BigDecimal clientEstimatedCost);
 }

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,13 +46,16 @@ public class ClaimController {
             @RequestParam("clientId")    UUID clientId,
             @RequestParam("policyId")    UUID policyId,
             @RequestParam("description") String description,
-            @RequestParam(value = "photos", required = false) List<MultipartFile> photos) {
+            @RequestParam(value = "photos", required = false) List<MultipartFile> photos,
+            @RequestParam(value = "clientEstimatedCost", required = false) BigDecimal clientEstimatedCost )
+
+    {
 
         // Upload photos to Cloudinary and collect URLs
         List<String> photoUrls = photoUploadService.uploadAll(photos);
 
         Claim claim = submitClaimUseCase.submit(
-                clientId, policyId, description, photoUrls);
+                clientId, policyId, description, photoUrls , clientEstimatedCost);
 
         return ResponseEntity.accepted().body(ClaimResponse.fromDomain(claim));
     }
@@ -70,7 +74,8 @@ public class ClaimController {
                 request.getClientId(),
                 request.getPolicyId(),
                 request.getDescription(),
-                request.getPhotoUrls()
+                request.getPhotoUrls(),
+                request.getClientEstimatedCost()
         );
         return ResponseEntity.accepted().body(ClaimResponse.fromDomain(claim));
     }

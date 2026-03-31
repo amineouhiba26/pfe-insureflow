@@ -34,6 +34,8 @@ public class ClaimResponse {
     private Double      confidenceScore;
     private Instant     submittedAt;
     private Instant     updatedAt;
+    private BigDecimal clientEstimatedCost;
+
 
     // Agent results as proper JSON objects, not escaped strings
     private Map<String, Object> routerResult;
@@ -55,6 +57,9 @@ public class ClaimResponse {
         r.confidenceScore = c.getConfidenceScore();
         r.submittedAt     = c.getSubmittedAt();
         r.updatedAt       = c.getUpdatedAt();
+        r.clientEstimatedCost = c.getClientEstimatedCost();
+
+
 
         // Parse each JSON string into a proper Map
         r.routerResult    = parseJson(c.getRouterResult());
@@ -95,4 +100,6 @@ public class ClaimResponse {
     public Map<String, Object> getValidatorResult() { return validatorResult; }
     public Map<String, Object> getEstimatorResult() { return estimatorResult; }
     public Map<String, Object> getFraudResult()  { return fraudResult; }
+    public BigDecimal getClientEstimatedCost() { return clientEstimatedCost; }
+
 }

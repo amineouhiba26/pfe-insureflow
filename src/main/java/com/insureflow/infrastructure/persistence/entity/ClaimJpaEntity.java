@@ -88,6 +88,9 @@ public class ClaimJpaEntity {
     @Column(name = "updated_at")
     private Instant updatedAt;
 
+    @Column(name = "client_estimated_cost")
+    private BigDecimal clientEstimatedCost;
+
     public ClaimJpaEntity() {}
 
     public UUID getId() { return id; }
@@ -124,4 +127,6 @@ public class ClaimJpaEntity {
     public void setSubmittedAt(Instant v) { this.submittedAt = v; }
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant v) { this.updatedAt = v; }
+    public BigDecimal getClientEstimatedCost() { return clientEstimatedCost; }
+    public void setClientEstimatedCost(BigDecimal v) { this.clientEstimatedCost = v; }
 }
