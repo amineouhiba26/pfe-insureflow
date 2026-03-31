@@ -4,6 +4,7 @@ package com.insureflow.application.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,6 +19,9 @@ public class SubmitClaimRequest {
     @NotBlank(message = "Description is required")
     private String description;
 
+    private BigDecimal clientEstimatedCost;
+
+
     private List<String> photoUrls;
 
     public SubmitClaimRequest() {}
@@ -30,4 +34,6 @@ public class SubmitClaimRequest {
     public void setDescription(String description) { this.description = description; }
     public List<String> getPhotoUrls() { return photoUrls; }
     public void setPhotoUrls(List<String> photoUrls) { this.photoUrls = photoUrls; }
+    public BigDecimal getClientEstimatedCost() { return clientEstimatedCost; }
+    public void setClientEstimatedCost(BigDecimal v) { this.clientEstimatedCost = v; }
 }
