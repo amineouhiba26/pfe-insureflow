@@ -62,6 +62,7 @@ public class ClaimRepositoryAdapter implements ClaimRepository {
         e.setFinalCost(c.getFinalCost());
         e.setRejectionReason(c.getRejectionReason());
         e.setConfidenceScore(c.getConfidenceScore());
+        e.setClientEstimatedCost(c.getClientEstimatedCost());
         return e;
     }
 
@@ -84,6 +85,7 @@ public class ClaimRepositoryAdapter implements ClaimRepository {
         c.setConfidenceScore(e.getConfidenceScore());
         c.setSubmittedAt(e.getSubmittedAt());
         c.setUpdatedAt(e.getUpdatedAt());
+        c.setClientEstimatedCost(e.getClientEstimatedCost());
         return c;
     }
 }
