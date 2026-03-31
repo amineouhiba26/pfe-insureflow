@@ -66,20 +66,32 @@ public class FraudAgentService {
 
     public AgentResult runFraudCheck(ClaimEvent event) {
         try {
-            // Get estimator result from DB
-            String estimatorResult = claimRepository.findById(event.getClaimId())
-                    .map(c -> c.getEstimatorResult())
-                    .orElse("{}");
+            // Always read from DB — the event's clientEstimatedCost can be null
+            // if the message was re-serialized mid-pipeline by another listener.
+            var claim = claimRepository.findById(event.getClaimId()).orElse(null);
+            if (claim == null) {
+                log.error("[FRAUD] Claim not found: {}", event.getClaimId());
+                return AgentResult.failure("Claim not found");
+            }
+
+            String estimatorResult = claim.getEstimatorResult() != null
+                    ? claim.getEstimatorResult() : "{}";
 
             String systemEstimatedCost = ResponseParser.getString(
                     estimatorResult, "estimatedCost", "non disponible");
 
-            String clientEstimatedCost = event.getClientEstimatedCost() != null
-                    ? event.getClientEstimatedCost().toPlainString()
+            // Read clientEstimatedCost from DB entity (reliable) first,
+            // then fall back to event in case DB field is somehow null.
+            java.math.BigDecimal clientCost = claim.getClientEstimatedCost() != null
+                    ? claim.getClientEstimatedCost()
+                    : event.getClientEstimatedCost();
+
+            String clientEstimatedCost = clientCost != null
+                    ? clientCost.toPlainString()
                     : "non fourni";
 
-            log.debug("[FRAUD] clientCost={} systemCost={}",
-                    clientEstimatedCost, systemEstimatedCost);
+            log.info("[FRAUD] claimId={} clientCost={} systemCost={}",
+                    event.getClaimId(), clientEstimatedCost, systemEstimatedCost);
 
             String raw  = fraudAgent.detect(
                     event.getDescription(),
@@ -91,11 +103,14 @@ public class FraudAgentService {
             String json = ResponseParser.extractJson(raw);
             double score = ResponseParser.getDouble(json, "anomalyScore", 0.0);
 
-            log.debug("[FRAUD] Raw response: {}", raw);
+            log.info("[FRAUD] anomalyScore={} anomalyType={} claimId={}",
+                    score,
+                    ResponseParser.getString(json, "anomalyType", "NONE"),
+                    event.getClaimId());
             return AgentResult.success(json, 1.0 - score, "");
 
         } catch (Exception e) {
-            log.error("[FRAUD] Failed claimId={}: {}", event.getClaimId(), e.getMessage());
+            log.error("[FRAUD] Failed claimId={}: {}", event.getClaimId(), e.getMessage(), e);
             // Fallback — neutral result so claim can still be processed
             String fallback = "{\"anomalyDetected\":false,\"anomalyScore\":0.0," +
                     "\"anomalyType\":\"NONE\",\"reasoning\":\"Agent unavailable\"," +

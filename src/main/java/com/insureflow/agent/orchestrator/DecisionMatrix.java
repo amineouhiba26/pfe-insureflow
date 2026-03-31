@@ -59,6 +59,22 @@ public class DecisionMatrix {
             return new DecisionResult(Decision.PENDING_REVIEW, reason);
         }
 
+        // Rule 2b — deterministic price-inflation check (catches cases LLM scored < 0.6)
+        // If client declared cost exceeds system estimate by > 30%, flag for human review.
+        if (claim.getClientEstimatedCost() != null && claim.getEstimatedCost() != null
+                && claim.getEstimatedCost().compareTo(BigDecimal.ZERO) > 0) {
+            double clientCost = claim.getClientEstimatedCost().doubleValue();
+            double sysCost    = claim.getEstimatedCost().doubleValue();
+            double ratio      = clientCost / sysCost;
+            if (ratio > 1.30) {
+                String reason = String.format(
+                        "Inflation de prix détectée : client %.0f TND vs système %.0f TND (ratio %.1fx)",
+                        clientCost, sysCost, ratio);
+                log.info("[DECISION] Rule 2b triggered — PRICE_INFLATION ratio={} → PENDING_REVIEW", ratio);
+                return new DecisionResult(Decision.PENDING_REVIEW, reason);
+            }
+        }
+
         // Rule 3 — total loss
         String overallSeverity = ResponseParser.getString(
                 claim.getEstimatorResult(), "overallSeverity", "");
