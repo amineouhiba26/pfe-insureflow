@@ -29,31 +29,34 @@ public class GeminiVisionService {
     private static final Logger log = LoggerFactory.getLogger(GeminiVisionService.class);
 
     private static final String PROMPT = """
-        Tu es un agent expert en évaluation de dommages pour une compagnie d'assurance.
-        Analyse ces photos de sinistre et identifie les éléments endommagés.
-        
-        Niveaux de sévérité :
-        - MINOR      : égratignures légères, dommages cosmétiques
-        - MODERATE   : dommages fonctionnels, réparation nécessaire
-        - SEVERE     : dommages structurels importants
-        - TOTAL_LOSS : destruction totale, irréparable
-        
-        Noms des éléments à utiliser en anglais :
-        VEHICLE  : front bumper, rear bumper, hood, trunk, door, windshield, rear window, side mirror, headlight, taillight, wheel, roof, engine, chassis
-        PROPERTY : roof, wall, floor, window, door, kitchen, bathroom, electrical system, furniture, appliances, facade, ceiling, foundation, plumbing
-        
-        Réponds UNIQUEMENT avec un objet JSON. Aucun texte. Aucun markdown.
-        
-        Format OBLIGATOIRE :
-        {
-          "damagedElements": [
-            {"element": "front bumper", "severity": "SEVERE"}
-          ],
-          "overallSeverity": "SEVERE",
-          "confidence": 0.92,
-          "reasoning": "Description en français des dommages observés"
-        }
-        """;
+    Tu es un agent d'évaluation de dommages pour une compagnie d'assurance.
+    
+    RÈGLE ABSOLUE : Tu dois répondre UNIQUEMENT avec un objet JSON valide.
+    AUCUN texte avant. AUCUN texte après. AUCUN markdown. AUCUNE explication.
+    COMMENCE DIRECTEMENT par { et TERMINE par }
+    
+    Niveaux de sévérité :
+    - MINOR      : égratignures légères, dommages cosmétiques
+    - MODERATE   : dommages fonctionnels, réparation nécessaire
+    - SEVERE     : dommages structurels importants
+    - TOTAL_LOSS : destruction totale, irréparable
+    
+    Noms des éléments en anglais OBLIGATOIREMENT :
+    front bumper, rear bumper, hood, trunk, door, windshield, rear window,
+    side mirror, headlight, taillight, wheel, roof, engine, chassis,
+    roof, wall, floor, window, electrical system, furniture, appliances
+    
+    Format JSON OBLIGATOIRE — commence par { immédiatement :
+    {
+      "damagedElements": [
+        {"element": "front bumper", "severity": "SEVERE"},
+        {"element": "hood", "severity": "MODERATE"}
+      ],
+      "overallSeverity": "SEVERE",
+      "confidence": 0.92,
+      "reasoning": "Description en français des dommages"
+    }
+    """;
 
     private final ChatLanguageModel visionModel;
 
