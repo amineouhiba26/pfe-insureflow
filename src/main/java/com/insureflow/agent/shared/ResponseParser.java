@@ -1,4 +1,3 @@
-// ResponseParser.java
 package com.insureflow.agent.shared;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -6,52 +5,36 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Utility for safely extracting fields from LLM JSON responses.
- *
- * Why do we need this?
- * LLMs sometimes return JSON wrapped in markdown:
- *   ```json
- *   {"claimType":"VEHICLE_DAMAGE"}
- *   ```
- * Or they add extra text before/after the JSON.
- * This class strips all of that and gives you clean field access.
- *
- * We use Jackson's ObjectMapper to parse the JSON tree.
- * All methods are static — no state, no Spring bean needed.
- */
 public class ResponseParser {
 
     private static final Logger log = LoggerFactory.getLogger(ResponseParser.class);
     private static final ObjectMapper mapper = new ObjectMapper();
 
     /**
-     * Strips markdown code fences and extracts the raw JSON string.
-     * Input:  "```json\n{\"key\":\"val\"}\n```"
-     * Output: "{\"key\":\"val\"}"
+     * Extracts JSON from LLM response.
+     * Uses FIRST { and LAST } to get the outermost object.
+     * llama3.2-vision sometimes wraps JSON in markdown or adds text after it.
      */
     public static String extractJson(String llmResponse) {
         if (llmResponse == null) return "{}";
         String cleaned = llmResponse.trim();
-        // Remove ```json ... ``` fences
-        if (cleaned.startsWith("```")) {
-            cleaned = cleaned.replaceAll("```json\\s*", "")
-                    .replaceAll("```\\s*", "")
-                    .trim();
+
+        // Remove markdown code fences
+        cleaned = cleaned.replaceAll("```json\\s*", "")
+                .replaceAll("```\\s*", "")
+                .trim();
+
+        // Use FIRST { and LAST } — gets the outermost JSON object
+        int firstStart = cleaned.indexOf('{');
+        int lastEnd    = cleaned.lastIndexOf('}');
+
+        if (firstStart >= 0 && lastEnd > firstStart) {
+            return cleaned.substring(firstStart, lastEnd + 1);
         }
-        // Find first { to last }
-        int start = cleaned.indexOf('{');
-        int end   = cleaned.lastIndexOf('}');
-        if (start >= 0 && end > start) {
-            return cleaned.substring(start, end + 1);
-        }
+
         return "{}";
     }
 
-    /**
-     * Safely reads a String field from JSON.
-     * Returns defaultValue if the field is missing or JSON is invalid.
-     */
     public static String getString(String json, String field, String defaultValue) {
         try {
             JsonNode node = mapper.readTree(json);
@@ -63,9 +46,6 @@ public class ResponseParser {
         }
     }
 
-    /**
-     * Safely reads a double field from JSON.
-     */
     public static double getDouble(String json, String field, double defaultValue) {
         try {
             JsonNode node = mapper.readTree(json);
@@ -77,9 +57,6 @@ public class ResponseParser {
         }
     }
 
-    /**
-     * Safely reads a boolean field from JSON.
-     */
     public static boolean getBoolean(String json, String field, boolean defaultValue) {
         try {
             JsonNode node = mapper.readTree(json);
