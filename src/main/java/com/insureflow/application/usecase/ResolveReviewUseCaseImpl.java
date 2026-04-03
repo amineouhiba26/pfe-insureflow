@@ -30,7 +30,7 @@ public class ResolveReviewUseCaseImpl implements ResolveReviewUseCase {
 
     @Override
     public void resolve(UUID reviewTaskId, ReviewStatus decision,
-                        String assignedTo, String adjusterNotes) {
+                        String assignedTo, String resolutionNote) {
 
         HumanReviewTask task = reviewRepository.findById(reviewTaskId)
                 .orElseThrow(() -> new IllegalArgumentException(
@@ -39,7 +39,7 @@ public class ResolveReviewUseCaseImpl implements ResolveReviewUseCase {
         // Update the review task
         task.setStatus(decision);
         task.setAssignedTo(assignedTo);
-        task.setAdjusterNotes(adjusterNotes);
+        task.setResolutionNote(resolutionNote);
         task.setResolvedAt(Instant.now());
         reviewRepository.save(task);
 

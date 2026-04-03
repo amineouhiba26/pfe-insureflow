@@ -28,8 +28,8 @@ public class HumanReviewJpaEntity {
     @Column(name = "assigned_to")
     private String assignedTo;
 
-    @Column(name = "adjuster_notes", columnDefinition = "TEXT")
-    private String adjusterNotes;
+    @Column(name = "resolution_note", columnDefinition = "TEXT")
+    private String resolutionNote;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
@@ -50,8 +50,8 @@ public class HumanReviewJpaEntity {
     public void setStatus(ReviewStatus status) { this.status = status; }
     public String getAssignedTo() { return assignedTo; }
     public void setAssignedTo(String assignedTo) { this.assignedTo = assignedTo; }
-    public String getAdjusterNotes() { return adjusterNotes; }
-    public void setAdjusterNotes(String adjusterNotes) { this.adjusterNotes = adjusterNotes; }
+    public String getResolutionNote() { return resolutionNote; }
+    public void setResolutionNote(String resolutionNote) { this.resolutionNote = resolutionNote; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public Instant getResolvedAt() { return resolvedAt; }

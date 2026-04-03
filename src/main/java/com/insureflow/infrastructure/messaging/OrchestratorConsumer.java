@@ -2,8 +2,6 @@ package com.insureflow.infrastructure.messaging;
 
 import com.insureflow.agent.orchestrator.ConfidenceCalculator;
 import com.insureflow.agent.orchestrator.DecisionMatrix;
-import com.insureflow.agent.orchestrator.DecisionMatrix.Decision;
-import com.insureflow.agent.orchestrator.DecisionMatrix.DecisionResult;
 import com.insureflow.domain.model.Claim;
 import com.insureflow.domain.model.HumanReviewTask;
 import com.insureflow.domain.model.enums.ClaimStatus;
@@ -75,42 +73,33 @@ public class OrchestratorConsumer {
         log.info("[ORCHESTRATOR] onDecision received claimId={}", event.getClaimId());
         try {
             Claim claim = claimRepository.findById(event.getClaimId()).orElse(null);
-
             if (claim == null) {
                 log.error("[ORCHESTRATOR] Claim not found: {}", event.getClaimId());
                 return;
             }
 
-            // Compute composite confidence
             double confidence = confidenceCalculator.compute(claim);
             claim.setConfidenceScore(confidence);
 
-            // Run decision matrix
-            DecisionResult result = decisionMatrix.evaluate(claim, confidence);
-            log.info("[ORCHESTRATOR] Decision={} reason='{}'",
-                    result.decision(), result.reason());
+            DecisionMatrix.DecisionResult result =
+                    decisionMatrix.evaluate(claim, confidence);
 
-            // Update claim status
-            ClaimStatus finalStatus = switch (result.decision()) {
-                case APPROVED       -> ClaimStatus.APPROVED;
-                case REJECTED       -> ClaimStatus.REJECTED;
-                case PENDING_REVIEW -> ClaimStatus.PENDING_REVIEW;
-            };
+            log.info("[ORCHESTRATOR] Decision={} flag={} reason='{}'",
+                    result.decision(), result.flag(), result.reason());
 
-            if (result.decision() == Decision.REJECTED) {
-                claim.setRejectionReason(result.reason());
-            }
+            ClaimStatus finalStatus = result.decision() == DecisionMatrix.Decision.APPROVED
+                    ? ClaimStatus.APPROVED
+                    : ClaimStatus.PENDING_REVIEW;
 
             claim.transitionTo(finalStatus);
             claimRepository.save(claim);
 
-            // Create human review task if needed
-            if (result.decision() == Decision.PENDING_REVIEW) {
+            if (finalStatus == ClaimStatus.PENDING_REVIEW) {
                 HumanReviewTask reviewTask = HumanReviewTask.createFor(
                         claim.getId(), result.reason());
                 reviewRepository.save(reviewTask);
-                log.info("[ORCHESTRATOR] HumanReviewTask created for claimId={}",
-                        event.getClaimId());
+                log.info("[ORCHESTRATOR] HumanReviewTask created — flag={} claimId={}",
+                        result.flag(), event.getClaimId());
             }
 
             log.info("[ORCHESTRATOR] Pipeline complete — claimId={} status={}",

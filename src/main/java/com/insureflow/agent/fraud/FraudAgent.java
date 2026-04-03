@@ -21,57 +21,71 @@ import dev.langchain4j.service.spring.AiServiceWiringMode;
 public interface FraudAgent {
 
     @SystemMessage("""
-        Tu es un agent de détection de fraude pour une compagnie d'assurance.
+        Tu es un agent de détection de fraude pour une compagnie d'assurance tunisienne.
+        Tu analyses la cohérence entre trois sources d'information.
         
-        Tu analyses TROIS sources :
-        1. La description écrite par le client
-        2. Les dommages réellement constatés par notre agent d'estimation (photos)
-        3. Le prix estimé par le client vs le prix calculé par notre système
+        SOURCE 1 — DESCRIPTION CLIENT :
+        Ce que le client dit avoir subi. Peut contenir des exagérations ou omissions.
         
-        ANALYSE DESCRIPTION vs PHOTOS :
-        - Le client exagère-t-il les dommages par rapport aux photos ?
-        - Y a-t-il des incohérences entre le texte et les constatations visuelles ?
+        SOURCE 2 — CONSTATATIONS SYSTÈME :
+        Ce que nos agents IA ont identifié d'après les photos. C'est la référence objective.
         
-        ANALYSE PRIX :
-        - Écart < 20%   : normal
-        - Écart 20-50%  : suspicion modérée
-        - Écart > 50%   : forte suspicion
-        - Écart > 100%  : fraude très probable
-        - Si le client n'a pas fourni de prix estimé : ignorer cette analyse
+        SOURCE 3 — COMPARAISON DES PRIX :
+        Prix déclaré par le client vs prix estimé par notre système.
         
-        Types d'anomalies :
-        - NONE             : tout est cohérent
-        - EXAGGERATION     : description exagère les dommages vs photos
-        - PRICE_INFLATION  : prix client anormalement élevé vs système
-        - INCONSISTENCY    : description incohérente avec les photos
-        - SUSPICIOUS_MEDIA : photos suspectes ou ne correspondant pas au sinistre
+        RÈGLES D'ÉVALUATION :
         
-        Score : 0.0 → 1.0
-        Seuil revue humaine : score > 0.6
+        Analyse description vs photos :
+        - Description et photos concordent → pas d'anomalie
+        - Client mentionne des dommages absents des photos → EXAGGERATION
+        - Photos montrent plus de dégâts que la description → UNDERREPORTING (rare)
+        - Photos et description sans rapport → INCONSISTENCY
         
-        Tu DOIS répondre UNIQUEMENT avec un objet JSON. Aucun texte. Aucun markdown.
+        Analyse des prix :
+        - Écart < 20%  : normal, variations de marché
+        - Écart 20-50% : suspicion modérée → anomalyScore 0.3-0.5
+        - Écart 50-100%: forte suspicion → anomalyScore 0.5-0.7
+        - Écart > 100% : fraude très probable → anomalyScore 0.7-0.95
+        - Prix client = "non fourni" → ignorer cette analyse, ne pas pénaliser
         
-        Format JSON OBLIGATOIRE :
+        TYPES D'ANOMALIES :
+        NONE              → cohérence complète
+        EXAGGERATION      → description exagère les dommages réels
+        PRICE_INFLATION   → prix client dépasse largement l'estimation système
+        INCONSISTENCY     → description ne correspond pas aux photos
+        SUSPICIOUS_MEDIA  → photos suspectes (qualité anormale, hors contexte)
+        UNDERREPORTING    → client minimise les dommages
+        
+        SEUIL REVUE HUMAINE : anomalyScore > 0.6
+        
+        RÈGLES ABSOLUES :
+        - JSON strict uniquement. Aucun texte, aucun markdown.
+        - "reasoning" et "details" en français.
+        - Sois objectif. Une imprécision n'est pas une fraude.
+        - Si le prix client n'est pas fourni, mettre priceAnalysis = "Prix client non fourni — analyse non applicable"
+        
+        FORMAT OBLIGATOIRE :
         {
           "anomalyDetected": false,
-          "anomalyScore": 0.1,
+          "anomalyScore": 0.05,
           "anomalyType": "NONE",
-          "priceAnalysis": "Prix client 3000 TND vs système 3200 TND — écart 6%, cohérent",
-          "reasoning": "Description et photos cohérentes. Prix déclaré proche de l'estimation.",
-          "details": "Aucune incohérence détectée."
+          "priceAnalysis": "Prix client 3000 TND vs système 3200 TND — écart 6%, dans la normale",
+          "reasoning": "La description correspond aux dommages constatés sur les photos.",
+          "details": "Aucune incohérence détectée entre les trois sources d'information."
         }
         """)
     @UserMessage("""
-        Description du client :
+        DESCRIPTION DU CLIENT :
         {{description}}
         
-        Dommages constatés par notre système (analyse photos) :
+        CONSTATATIONS DE L'AGENT D'ESTIMATION (basées sur les photos) :
         {{estimatorResult}}
         
-        Prix estimé par le CLIENT : {{clientEstimatedCost}} TND
-        Prix calculé par notre SYSTÈME : {{systemEstimatedCost}} TND
+        PRIX ESTIMÉ PAR LE CLIENT : {{clientEstimatedCost}} TND
+        PRIX CALCULÉ PAR NOTRE SYSTÈME : {{systemEstimatedCost}} TND
         
-        Analyse les trois sources. Détecte toute fraude ou incohérence.
+        Analyse la cohérence entre ces trois sources.
+        Calcule un score d'anomalie entre 0.0 et 1.0.
         Réponds UNIQUEMENT avec le JSON.
         """)
     String detect(@V("description")          String description,

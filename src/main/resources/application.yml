@@ -99,3 +99,7 @@ tavily:
 
 gemini:
   api-key: AIzaSyCex8edzulegNEMSkewwwHBw61MQZXhr4o
+
+jwt:
+  secret: insureflow-secret-key-for-jwt-signing-amine-ouhiba-5eme-annee-genie-logiciel-2026
+  expiration: 86400000 # 24 hours in milliseconds  

@@ -1,6 +1,7 @@
 // ClaimJpaRepository.java
 package com.insureflow.infrastructure.persistence.repository;
 
+import com.insureflow.domain.model.enums.ClaimStatus;
 import com.insureflow.infrastructure.persistence.entity.ClaimJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -11,4 +12,6 @@ import java.util.UUID;
 @Repository
 public interface ClaimJpaRepository extends JpaRepository<ClaimJpaEntity, UUID> {
     List<ClaimJpaEntity> findByClientId(UUID clientId);
+    List<ClaimJpaEntity> findByStatus(ClaimStatus status);
+    long countByStatus(ClaimStatus status);
 }

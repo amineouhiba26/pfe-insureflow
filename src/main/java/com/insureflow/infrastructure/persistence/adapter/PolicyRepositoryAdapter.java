@@ -7,6 +7,7 @@ import com.insureflow.infrastructure.persistence.entity.PolicyJpaEntity;
 import com.insureflow.infrastructure.persistence.repository.PolicyJpaRepository;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -27,6 +28,12 @@ public class PolicyRepositoryAdapter implements PolicyRepository {
     @Override
     public Optional<Policy> findById(UUID id) {
         return jpaRepository.findById(id).map(this::toDomain);
+    }
+
+    @Override
+    public List<Policy> findByClientId(UUID clientId) {
+        return jpaRepository.findByClientId(clientId)
+                .stream().map(this::toDomain).toList();
     }
 
     private PolicyJpaEntity toEntity(Policy p) {

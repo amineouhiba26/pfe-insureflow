@@ -42,6 +42,8 @@ public class HumanReviewRepositoryAdapter implements HumanReviewRepository {
                 .stream().map(this::toDomain).toList();
     }
 
+
+
     private HumanReviewJpaEntity toEntity(HumanReviewTask t) {
         HumanReviewJpaEntity e = new HumanReviewJpaEntity();
         e.setId(t.getId());
@@ -49,7 +51,7 @@ public class HumanReviewRepositoryAdapter implements HumanReviewRepository {
         e.setReason(t.getReason());
         e.setStatus(t.getStatus());
         e.setAssignedTo(t.getAssignedTo());
-        e.setAdjusterNotes(t.getAdjusterNotes());
+        e.setResolutionNote(t.getResolutionNote());
         e.setResolvedAt(t.getResolvedAt());
         return e;
     }
@@ -61,7 +63,7 @@ public class HumanReviewRepositoryAdapter implements HumanReviewRepository {
         t.setReason(e.getReason());
         t.setStatus(e.getStatus());
         t.setAssignedTo(e.getAssignedTo());
-        t.setAdjusterNotes(e.getAdjusterNotes());
+        t.setResolutionNote(e.getResolutionNote());
         t.setCreatedAt(e.getCreatedAt());
         t.setResolvedAt(e.getResolvedAt());
         return t;
