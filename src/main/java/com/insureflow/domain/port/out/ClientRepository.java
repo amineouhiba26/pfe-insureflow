@@ -8,4 +8,5 @@ public interface ClientRepository {
     Client save(Client client);
     Optional<Client> findById(UUID id);
     Optional<Client> findByEmail(String email);
+    Optional<com.insureflow.domain.model.Client> findByNationalId(String nationalId);
 }

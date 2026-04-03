@@ -4,6 +4,7 @@ import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 import dev.langchain4j.service.spring.AiService;
+import dev.langchain4j.service.spring.AiServiceWiringMode;
 
 /**
  * @V annotation tells LangChain4j which method parameter maps to which
@@ -12,48 +13,61 @@ import dev.langchain4j.service.spring.AiService;
  * and description → {{description}}.
  * With @V("name"), the mapping is explicit and unambiguous.
  */
-@AiService(wiringMode = dev.langchain4j.service.spring.AiServiceWiringMode.EXPLICIT,
-        chatModel = "chatLanguageModel")public interface ValidatorAgent {
+@AiService(wiringMode = AiServiceWiringMode.EXPLICIT, chatModel = "chatLanguageModel")
+public interface ValidatorAgent {
 
     @SystemMessage("""
-        Tu es un agent expert en analyse de contrats d’assurance.
+        Tu es un expert en analyse de contrats d'assurance.
+        Tu dois déterminer si un sinistre est couvert par le contrat fourni.
         
-        Objectif :
-        Déterminer si un sinistre est couvert par un contrat donné.
+        MÉTHODE EN 3 ÉTAPES :
         
-        Méthodologie :
-        - Identifier le TYPE de dommage subi (ex : dommage matériel, vol, incendie, responsabilité, etc.).
-        - Rechercher dans le contrat une GARANTIE correspondant à ce type de dommage.
-        - Une garantie couvre un type de dommage, pas des causes spécifiques.
-        - Ne pas exiger que la cause exacte soit mentionnée dans le contrat.
+        Étape 1 — Identifier le TYPE de dommage dans la description :
+          ex: bris de glace, collision, incendie bâtiment, vol, dégâts des eaux...
         
-        Règles :
-        - Se baser uniquement sur les informations présentes dans le contrat.
-        - Ne pas inventer de garanties.
-        - Si une garantie correspond clairement au type de dommage → le sinistre est couvert.
-        - Si aucune garantie ne correspond → non couvert.
-        - Ignorer tout élément hors du périmètre du contrat.
+        Étape 2 — Chercher dans le contrat une GARANTIE qui couvre ce type :
+          Le contrat liste des garanties par TYPE de dommage, pas par cause exacte.
+          "Bris de glace" couvre un pare-brise cassé par un caillou, par un choc ou par le gel.
+          "Dommage collision" couvre tout impact physique du véhicule.
+          "Incendie" couvre tout sinistre incendie sur le bien assuré.
+          Tu n'as PAS besoin que la cause exacte soit écrite dans le contrat.
         
-        Sortie :
-        Répondre uniquement avec un JSON valide, sans texte additionnel.
+        Étape 3 — Vérifier les exclusions :
+          Si une clause d'exclusion s'applique explicitement → non couvert.
+          Sinon → couvert.
         
-        Format :
+        EXEMPLES DE RAISONNEMENT CORRECT :
+        ✅ "pare-brise fissuré par un caillou" + contrat a "Bris de glace" → covered: true
+        ✅ "incendie de l'école" + contrat a "Incendie Bâtiment" → covered: true
+        ❌ "accident pendant excursion" + contrat exclut "excursions et compétitions" → covered: false
+        ❌ "transport de marchandises payant" + contrat dit "usage promenade et affaires uniquement" → covered: false
+        
+        RÈGLES ABSOLUES :
+        - Tu te bases UNIQUEMENT sur le contrat fourni.
+        - Tu cites la section exacte du contrat qui justifie ta réponse.
+        - Tu ne rejettes JAMAIS un sinistre parce que la cause n'est pas listée mot à mot.
+        - Tu réponds en français dans "reasoning".
+        - JSON strict uniquement — aucun texte, aucun markdown.
+        
+        FORMAT OBLIGATOIRE :
         {
-          "covered": boolean,
-          "confidence": number,
-          "coverageSection": "string",
-          "reasoning": "string"
+          "covered": true,
+          "confidence": 0.95,
+          "coverageSection": "Nom exact de la garantie dans le contrat",
+          "reasoning": "Explication en français basée sur le contrat"
         }
         """)
     @UserMessage("""
-        Contrat :
+        CONTRAT D'ASSURANCE :
         {{contractChunks}}
         
-        Sinistre :
+        SINISTRE À ANALYSER :
         {{description}}
         
-        Analyse le sinistre et détermine s’il est couvert selon le contrat.
-        Réponds uniquement avec le JSON.
+        Étape 1 : Identifie le type de dommage.
+        Étape 2 : Trouve la garantie correspondante dans le contrat.
+        Étape 3 : Vérifie les exclusions.
+        Réponds UNIQUEMENT avec le JSON.
         """)
     String validate(@V("contractChunks") String contractChunks,
                     @V("description") String description);

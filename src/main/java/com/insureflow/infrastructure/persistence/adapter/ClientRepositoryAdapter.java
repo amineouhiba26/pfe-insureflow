@@ -48,6 +48,12 @@ public class ClientRepositoryAdapter implements ClientRepository {
         return jpaRepository.findByEmail(email).map(this::toDomain);
     }
 
+    @Override
+    public Optional<Client> findByNationalId(String nationalId) {
+        return jpaRepository.findByNationalId(nationalId)
+                .map(this::toDomain);
+    }
+
     private ClientJpaEntity toEntity(Client c) {
         ClientJpaEntity e = new ClientJpaEntity();
         e.setId(c.getId());

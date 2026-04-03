@@ -4,6 +4,7 @@ package com.insureflow.agent.router;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.spring.AiService;
+import dev.langchain4j.service.spring.AiServiceWiringMode;
 
 /**
  * RouterAgent is a LangChain4j @AiService.
@@ -27,31 +28,42 @@ import dev.langchain4j.service.spring.AiService;
  * Classification tasks need determinism. Low temperature = the model picks
  * the most probable token every time instead of being creative.
  */
-@AiService(wiringMode = dev.langchain4j.service.spring.AiServiceWiringMode.EXPLICIT,
-        chatModel = "chatLanguageModel")public interface RouterAgent {
+@AiService(wiringMode = AiServiceWiringMode.EXPLICIT, chatModel = "chatLanguageModel")
+public interface RouterAgent {
 
     @SystemMessage("""
         Tu es un agent de classification de sinistres d'assurance.
-        Ton SEUL rôle est de lire la description et de la classer dans une catégorie.
+        Tu lis une description et tu retournes EXACTEMENT un JSON — rien d'autre.
         
-        Catégories et leurs définitions :
-        - VEHICLE_DAMAGE   : tout dommage à un véhicule (collision, rayure, bris de glace, vol de voiture)
-        - PROPERTY_DAMAGE  : tout dommage à un bien immobilier ou mobilier (maison, appartement,
-                             mobilier, incendie de maison, dégâts des eaux, explosion)
-        - HEALTH           : frais médicaux, hospitalisation, blessure corporelle, décès
-        - THEFT            : vol simple ou avec violence, cambriolage
-        - NATURAL_DISASTER : catastrophe d'origine naturelle uniquement — inondation par pluie,
-                             tremblement de terre, tempête, grêle, tsunami.
-                             Un incendie de maison = PROPERTY_DAMAGE, pas NATURAL_DISASTER.
-        - OTHER            : tout ce qui ne correspond à aucune catégorie ci-dessus
+        CATÉGORIES :
+        VEHICLE_DAMAGE   → dommage à un véhicule : collision, rayure, bris de glace,
+                           crevaison, incendie du véhicule, vol du véhicule complet
+        PROPERTY_DAMAGE  → dommage à un bien immobilier ou mobilier : maison,
+                           appartement, mobilier, incendie de bâtiment, dégâts des eaux,
+                           explosion, inondation intérieure
+        HEALTH           → atteinte corporelle : blessure, hospitalisation,
+                           frais médicaux, décès, invalidité
+        THEFT            → vol de biens (pas du véhicule entier) : cambriolage,
+                           vol de téléphone, bijoux, espèces, effraction
+        NATURAL_DISASTER → catastrophe naturelle : tremblement de terre, tsunami,
+                           tempête, grêle, inondation par crue (cause naturelle externe)
+        OTHER            → aucune catégorie ci-dessus ne correspond
         
-        Tu DOIS répondre UNIQUEMENT avec un objet JSON. Aucun texte. Aucun markdown.
+        RÈGLE ABSOLUE : un incendie de maison = PROPERTY_DAMAGE (pas NATURAL_DISASTER).
+        Un vol de voiture entière = VEHICLE_DAMAGE (pas THEFT).
         
-        Format JSON OBLIGATOIRE :
+        EXEMPLES :
+        "pare-choc arraché suite à collision" → VEHICLE_DAMAGE
+        "toit effondré après les pluies" → PROPERTY_DAMAGE
+        "hospitalisé 3 jours suite à accident" → HEALTH
+        "téléphone volé dans ma voiture" → THEFT
+        "maison inondée par la crue de l'oued" → NATURAL_DISASTER
+        
+        RÉPONSE : JSON strict, aucun texte avant ou après, aucun markdown.
         {
-          "claimType": "PROPERTY_DAMAGE",
+          "claimType": "VEHICLE_DAMAGE",
           "confidence": 0.95,
-          "reasoning": "La description mentionne une maison détruite par un incendie"
+          "reasoning": "une phrase en français expliquant le choix"
         }
         """)
     @UserMessage("Classifie ce sinistre : {{description}}")

@@ -23,7 +23,8 @@ public class HumanReviewTask {
     public enum ReviewStatus {
         PENDING,
         APPROVED,
-        REJECTED
+        REJECTED,
+        RESOLVED
     }
 
     private UUID id;
@@ -31,7 +32,7 @@ public class HumanReviewTask {
     private String reason;         // why it was flagged, e.g. "Fraud score 0.72 exceeds threshold"
     private ReviewStatus status;
     private String assignedTo;     // adjuster username
-    private String adjusterNotes;  // adjuster's written justification
+    private String resolutionNote;  // adjuster's written justification
     private Instant createdAt;
     private Instant resolvedAt;
 
@@ -61,8 +62,8 @@ public class HumanReviewTask {
     public void setStatus(ReviewStatus status) { this.status = status; }
     public String getAssignedTo() { return assignedTo; }
     public void setAssignedTo(String assignedTo) { this.assignedTo = assignedTo; }
-    public String getAdjusterNotes() { return adjusterNotes; }
-    public void setAdjusterNotes(String notes) { this.adjusterNotes = notes; }
+    public String getResolutionNote() { return resolutionNote; }
+    public void setResolutionNote(String notes) { this.resolutionNote = notes; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public Instant getResolvedAt() { return resolvedAt; }

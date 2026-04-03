@@ -18,4 +18,8 @@ public interface ClaimRepository {
     Optional<Claim> findById(UUID id);
     List<Claim> findByClientId(UUID clientId);
     Claim updateStatus(UUID id, ClaimStatus status);
+    List<Claim> findAll();
+    List<Claim> findByStatus(ClaimStatus status);
+    long countAll();
+    long countByStatus(ClaimStatus status);
 }
