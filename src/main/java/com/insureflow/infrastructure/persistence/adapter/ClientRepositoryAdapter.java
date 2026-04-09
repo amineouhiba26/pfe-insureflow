@@ -7,6 +7,7 @@ import com.insureflow.infrastructure.persistence.entity.ClientJpaEntity;
 import com.insureflow.infrastructure.persistence.repository.ClientJpaRepository;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -52,6 +53,11 @@ public class ClientRepositoryAdapter implements ClientRepository {
     public Optional<Client> findByNationalId(String nationalId) {
         return jpaRepository.findByNationalId(nationalId)
                 .map(this::toDomain);
+    }
+
+    @Override
+    public List<Client> findAll() {
+        return jpaRepository.findAll().stream().map(this::toDomain).toList();
     }
 
     private ClientJpaEntity toEntity(Client c) {
