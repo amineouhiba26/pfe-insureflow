@@ -28,7 +28,7 @@ public class LangChain4jConfig {
                 .baseUrl("http://localhost:11434")
                 .modelName("llama3.2-vision")
                 .temperature(0.1)
-                .timeout(Duration.ofSeconds(380))
+                .timeout(Duration.ofSeconds(300))
                 .build();
     }
 }

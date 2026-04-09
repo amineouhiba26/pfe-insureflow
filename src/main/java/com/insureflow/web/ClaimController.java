@@ -46,16 +46,14 @@ public class ClaimController {
             @RequestParam("clientId")    UUID clientId,
             @RequestParam("policyId")    UUID policyId,
             @RequestParam("description") String description,
-            @RequestParam(value = "photos", required = false) List<MultipartFile> photos,
-            @RequestParam(value = "clientEstimatedCost", required = false) BigDecimal clientEstimatedCost )
-
-    {
+            @RequestParam(value = "clientEstimatedCost", required = false) BigDecimal clientEstimatedCost,
+            @RequestParam(value = "photos", required = false) List<MultipartFile> photos) {
 
         // Upload photos to Cloudinary and collect URLs
         List<String> photoUrls = photoUploadService.uploadAll(photos);
 
         Claim claim = submitClaimUseCase.submit(
-                clientId, policyId, description, photoUrls , clientEstimatedCost);
+                clientId, policyId, description, photoUrls, clientEstimatedCost);
 
         return ResponseEntity.accepted().body(ClaimResponse.fromDomain(claim));
     }

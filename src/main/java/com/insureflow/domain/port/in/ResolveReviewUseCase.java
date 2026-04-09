@@ -5,5 +5,5 @@ import java.util.UUID;
 
 public interface ResolveReviewUseCase {
     void resolve(UUID reviewTaskId, ReviewStatus decision,
-                 String assignedTo, String adjusterNotes);
+                 String assignedTo, String resolutionNote);
 }

@@ -44,6 +44,27 @@ public class ClaimRepositoryAdapter implements ClaimRepository {
         entity.setStatus(status);
         return toDomain(jpaRepository.save(entity));
     }
+    @Override
+    public List<Claim> findAll() {
+        return jpaRepository.findAll()
+                .stream().map(this::toDomain).toList();
+    }
+
+    @Override
+    public List<Claim> findByStatus(ClaimStatus status) {
+        return jpaRepository.findByStatus(status)
+                .stream().map(this::toDomain).toList();
+    }
+
+    @Override
+    public long countAll() {
+        return jpaRepository.count();
+    }
+
+    @Override
+    public long countByStatus(ClaimStatus status) {
+        return jpaRepository.countByStatus(status);
+    }
 
     private ClaimJpaEntity toEntity(Claim c) {
         ClaimJpaEntity e = new ClaimJpaEntity();

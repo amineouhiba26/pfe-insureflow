@@ -18,4 +18,5 @@ import java.util.UUID;
 @Repository
 public interface ClientJpaRepository extends JpaRepository<ClientJpaEntity, UUID> {
     Optional<ClientJpaEntity> findByEmail(String email);
+    Optional<ClientJpaEntity> findByNationalId(String nationalId);
 }
