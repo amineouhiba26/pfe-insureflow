@@ -36,6 +36,12 @@ public class PolicyRepositoryAdapter implements PolicyRepository {
                 .stream().map(this::toDomain).toList();
     }
 
+    @Override
+    public List<Policy> findAll() {
+        return jpaRepository.findAll()
+                .stream().map(this::toDomain).toList();
+    }
+
     private PolicyJpaEntity toEntity(Policy p) {
         PolicyJpaEntity e = new PolicyJpaEntity();
         e.setId(p.getId());

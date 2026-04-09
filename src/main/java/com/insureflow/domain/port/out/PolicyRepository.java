@@ -9,4 +9,5 @@ public interface PolicyRepository {
     Policy save(Policy policy);
     Optional<Policy> findById(UUID id);
     List<Policy> findByClientId(UUID clientId);
+    List<Policy> findAll();
 }
