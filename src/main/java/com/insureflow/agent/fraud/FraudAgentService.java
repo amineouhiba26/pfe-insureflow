@@ -66,8 +66,6 @@ public class FraudAgentService {
 
     public AgentResult runFraudCheck(ClaimEvent event) {
         try {
-            // Always read from DB — the event's clientEstimatedCost can be null
-            // if the message was re-serialized mid-pipeline by another listener.
             var claim = claimRepository.findById(event.getClaimId()).orElse(null);
             if (claim == null) {
                 log.error("[FRAUD] Claim not found: {}", event.getClaimId());
@@ -77,45 +75,101 @@ public class FraudAgentService {
             String estimatorResult = claim.getEstimatorResult() != null
                     ? claim.getEstimatorResult() : "{}";
 
-            String systemEstimatedCost = ResponseParser.getString(
-                    estimatorResult, "estimatedCost", "non disponible");
+            String systemCostStr = ResponseParser.getString(
+                    estimatorResult, "estimatedCost", "0");
 
-            // Read clientEstimatedCost from DB entity (reliable) first,
-            // then fall back to event in case DB field is somehow null.
             java.math.BigDecimal clientCost = claim.getClientEstimatedCost() != null
                     ? claim.getClientEstimatedCost()
                     : event.getClientEstimatedCost();
 
-            String clientEstimatedCost = clientCost != null
-                    ? clientCost.toPlainString()
-                    : "non fourni";
+            String clientCostStr = clientCost != null
+                    ? clientCost.toPlainString() : "non fourni";
 
-            log.info("[FRAUD] claimId={} clientCost={} systemCost={}",
-                    event.getClaimId(), clientEstimatedCost, systemEstimatedCost);
+            // Pre-compute direction so the LLM cannot make a directional mistake
+            String priceDirection = computePriceDirection(clientCost, systemCostStr);
+
+            log.info("[FRAUD] claimId={} client={} system={} direction={}",
+                    event.getClaimId(), clientCostStr, systemCostStr, priceDirection);
 
             String raw  = fraudAgent.detect(
                     event.getDescription(),
                     estimatorResult,
-                    clientEstimatedCost,
-                    systemEstimatedCost
+                    clientCostStr,
+                    systemCostStr,
+                    priceDirection
             );
 
-            String json = ResponseParser.extractJson(raw);
+            String json  = ResponseParser.extractJson(raw);
             double score = ResponseParser.getDouble(json, "anomalyScore", 0.0);
+            String type  = ResponseParser.getString(json, "anomalyType", "NONE");
+
+            // Hard safety override — if client < system it CANNOT be PRICE_INFLATION
+            if ("PRICE_INFLATION".equals(type) && priceDirection.startsWith("CLIENT_INFERIEUR")) {
+                log.warn("[FRAUD] LLM incorrectly flagged PRICE_INFLATION — overriding to NONE");
+                json  = json.replace("\"PRICE_INFLATION\"", "\"NONE\"")
+                            .replace("\"anomalyDetected\":true", "\"anomalyDetected\":false");
+                score = 0.05;
+            }
 
             log.info("[FRAUD] anomalyScore={} anomalyType={} claimId={}",
-                    score,
-                    ResponseParser.getString(json, "anomalyType", "NONE"),
-                    event.getClaimId());
+                    score, type, event.getClaimId());
+
             return AgentResult.success(json, 1.0 - score, "");
 
         } catch (Exception e) {
-            log.error("[FRAUD] Failed claimId={}: {}", event.getClaimId(), e.getMessage(), e);
-            // Fallback — neutral result so claim can still be processed
+            log.error("[FRAUD] Failed claimId={}: {}", event.getClaimId(), e.getMessage());
             String fallback = "{\"anomalyDetected\":false,\"anomalyScore\":0.0," +
-                    "\"anomalyType\":\"NONE\",\"reasoning\":\"Agent unavailable\"," +
-                    "\"priceAnalysis\":\"N/A\",\"details\":\"Fraud check failed\"}";
+                    "\"anomalyType\":\"NONE\",\"reasoning\":\"Agent indisponible\"," +
+                    "\"priceAnalysis\":\"N/A\",\"details\":\"Vérification fraude échouée\"}";
             return AgentResult.success(fallback, 1.0, "");
+        }
+    }
+
+    /**
+     * Pre-computes price direction so the LLM cannot misinterpret it.
+     * This is passed explicitly to the FraudAgent prompt.
+     */
+    private String computePriceDirection(java.math.BigDecimal clientCost, String systemCostStr) {
+        if (clientCost == null) return "Prix client non fourni — analyse prix non applicable.";
+
+        try {
+            java.math.BigDecimal systemCost = new java.math.BigDecimal(systemCostStr);
+            if (systemCost.compareTo(java.math.BigDecimal.ZERO) == 0)
+                return "Prix système non disponible — analyse prix non applicable.";
+
+            java.math.BigDecimal diff    = clientCost.subtract(systemCost);
+            java.math.BigDecimal pct     = diff.abs()
+                    .divide(systemCost, 4, java.math.RoundingMode.HALF_UP)
+                    .multiply(java.math.BigDecimal.valueOf(100));
+            int pctInt = pct.intValue();
+
+            if (clientCost.compareTo(systemCost) < 0) {
+                // Client asked for LESS — cannot be price inflation
+                return String.format(
+                        "CLIENT_INFERIEUR: Le client (%s TND) demande MOINS que le système (%s TND). " +
+                        "Écart: %d%% en faveur du système. " +
+                        "Ce n'est PAS de la fraude — ne pas flaguer PRICE_INFLATION.",
+                        clientCost.toPlainString(), systemCostStr, pctInt);
+            } else if (clientCost.compareTo(systemCost) == 0) {
+                return String.format(
+                        "CLIENT_EGAL: Le client (%s TND) = système (%s TND). Aucune anomalie de prix.",
+                        clientCost.toPlainString(), systemCostStr);
+            } else {
+                // Client asked for MORE — possible inflation
+                String risk;
+                if (pctInt < 20)       risk = "normal, variations de marché → score 0.0-0.1";
+                else if (pctInt < 50)  risk = "suspicion modérée → score 0.2-0.4";
+                else if (pctInt < 100) risk = "forte suspicion → score 0.5-0.7";
+                else                   risk = "fraude très probable → score 0.7-0.95";
+
+                return String.format(
+                        "CLIENT_SUPERIEUR: Le client (%s TND) demande PLUS que le système (%s TND). " +
+                        "Écart: +%d%%. Risque: %s. " +
+                        "Considérer PRICE_INFLATION si l'écart est injustifié.",
+                        clientCost.toPlainString(), systemCostStr, pctInt, risk);
+            }
+        } catch (Exception e) {
+            return "Calcul de direction impossible — ignorer l'analyse des prix.";
         }
     }
 }

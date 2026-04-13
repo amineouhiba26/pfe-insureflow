@@ -25,53 +25,54 @@ public interface FraudAgent {
         Tu analyses la cohérence entre trois sources d'information.
         
         SOURCE 1 — DESCRIPTION CLIENT :
-        Ce que le client dit avoir subi. Peut contenir des exagérations ou omissions.
+        Ce que le client dit avoir subi.
         
         SOURCE 2 — CONSTATATIONS SYSTÈME :
-        Ce que nos agents IA ont identifié d'après les photos. C'est la référence objective.
+        Ce que nos agents IA ont identifié d'après les photos. Référence objective.
         
         SOURCE 3 — COMPARAISON DES PRIX :
         Prix déclaré par le client vs prix estimé par notre système.
         
-        RÈGLES D'ÉVALUATION :
+        RÈGLE CRITIQUE SUR LES PRIX :
+        La fraude par inflation de prix = le client DEMANDE PLUS que ce que le système estime.
         
-        Analyse description vs photos :
-        - Description et photos concordent → pas d'anomalie
-        - Client mentionne des dommages absents des photos → EXAGGERATION
-        - Photos montrent plus de dégâts que la description → UNDERREPORTING (rare)
-        - Photos et description sans rapport → INCONSISTENCY
+        DIRECTION DE L'ÉCART — TRÈS IMPORTANT :
+        - Client > Système : client demande plus → suspicion de PRICE_INFLATION
+        - Client < Système : client demande moins → c'est normal, pas de fraude
+        - Client = Système : parfaitement cohérent
         
-        Analyse des prix :
-        - Écart < 20%  : normal, variations de marché
-        - Écart 20-50% : suspicion modérée → anomalyScore 0.3-0.5
+        Seuils pour PRICE_INFLATION (uniquement si client > système) :
+        - Écart < 20%  : normal → anomalyScore 0.0-0.1
+        - Écart 20-50% : suspicion modérée → anomalyScore 0.2-0.4
         - Écart 50-100%: forte suspicion → anomalyScore 0.5-0.7
         - Écart > 100% : fraude très probable → anomalyScore 0.7-0.95
-        - Prix client = "non fourni" → ignorer cette analyse, ne pas pénaliser
+        
+        Si le client déclare MOINS que le système → priceAnalysis normale, pas de pénalisation.
+        Si le prix client n'est pas fourni → priceAnalysis = "Prix client non fourni — non applicable"
+        
+        ANALYSE DESCRIPTION vs PHOTOS :
+        - Concordance → NONE
+        - Client exagère vs photos → EXAGGERATION
+        - Photos montrent plus que description → UNDERREPORTING
+        - Aucun rapport → INCONSISTENCY
         
         TYPES D'ANOMALIES :
-        NONE              → cohérence complète
-        EXAGGERATION      → description exagère les dommages réels
-        PRICE_INFLATION   → prix client dépasse largement l'estimation système
-        INCONSISTENCY     → description ne correspond pas aux photos
-        SUSPICIOUS_MEDIA  → photos suspectes (qualité anormale, hors contexte)
-        UNDERREPORTING    → client minimise les dommages
-        
-        SEUIL REVUE HUMAINE : anomalyScore > 0.6
+        NONE, EXAGGERATION, PRICE_INFLATION, INCONSISTENCY, SUSPICIOUS_MEDIA, UNDERREPORTING
         
         RÈGLES ABSOLUES :
-        - JSON strict uniquement. Aucun texte, aucun markdown.
+        - JSON strict. Aucun texte, aucun markdown.
         - "reasoning" et "details" en français.
-        - Sois objectif. Une imprécision n'est pas une fraude.
-        - Si le prix client n'est pas fourni, mettre priceAnalysis = "Prix client non fourni — analyse non applicable"
+        - Un client qui déclare MOINS que le système n'est PAS fraudeur.
+        - Sois objectif et précis dans le calcul de l'écart.
         
         FORMAT OBLIGATOIRE :
         {
           "anomalyDetected": false,
           "anomalyScore": 0.05,
           "anomalyType": "NONE",
-          "priceAnalysis": "Prix client 3000 TND vs système 3200 TND — écart 6%, dans la normale",
-          "reasoning": "La description correspond aux dommages constatés sur les photos.",
-          "details": "Aucune incohérence détectée entre les trois sources d'information."
+          "priceAnalysis": "Prix client 3000 TND vs système 3200 TND — client déclare moins, aucune inflation",
+          "reasoning": "La description correspond aux dommages constatés. Le client n'exagère pas le montant.",
+          "details": "Aucune incohérence détectée."
         }
         """)
     @UserMessage("""
@@ -84,12 +85,18 @@ public interface FraudAgent {
         PRIX ESTIMÉ PAR LE CLIENT : {{clientEstimatedCost}} TND
         PRIX CALCULÉ PAR NOTRE SYSTÈME : {{systemEstimatedCost}} TND
         
-        Analyse la cohérence entre ces trois sources.
-        Calcule un score d'anomalie entre 0.0 et 1.0.
+        ANALYSE DE DIRECTION PRÉ-CALCULÉE :
+        {{priceDirection}}
+        
+        Utilise cette analyse de direction pour évaluer le risque de fraude.
+        Rappel : PRICE_INFLATION = client demande PLUS que le système.
+        Si client < système → ce n'est PAS de la fraude sur les prix.
+        
         Réponds UNIQUEMENT avec le JSON.
         """)
     String detect(@V("description")          String description,
                   @V("estimatorResult")       String estimatorResult,
                   @V("clientEstimatedCost")   String clientEstimatedCost,
-                  @V("systemEstimatedCost")   String systemEstimatedCost);
+                  @V("systemEstimatedCost")   String systemEstimatedCost,
+                  @V("priceDirection")        String priceDirection);
 }

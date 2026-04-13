@@ -35,7 +35,15 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: insureflow-keycloak
+    command: start-dev
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: REDACTED
+    ports:
+      - "8180:8080"
 volumes:
   postgres_data:
   rabbitmq_data:

@@ -21,7 +21,7 @@ import java.math.BigDecimal;
  * 3. Severity = TOTAL_LOSS        → PENDING_REVIEW
  * 4. Composite confidence < 0.75  → PENDING_REVIEW
  * 5. Estimated cost > 15,000 TND  → PENDING_REVIEW
- * 6. All rules passed             → APPROVED
+ * 6. All rules passed             → PENDING_REVIEW (human confirmation)
  */
 @Component
 public class DecisionMatrix {
@@ -31,7 +31,7 @@ public class DecisionMatrix {
     private static final double     FRAUD_THRESHOLD = 0.6;
     private static final BigDecimal COST_THRESHOLD  = BigDecimal.valueOf(15_000);
 
-    public enum Decision { APPROVED, PENDING_REVIEW }
+    public enum Decision { PENDING_REVIEW }
 
     public record DecisionResult(Decision decision, String reason, String flag) {}
 
@@ -109,9 +109,10 @@ public class DecisionMatrix {
             return new DecisionResult(Decision.PENDING_REVIEW, reason, "MONTANT_ELEVE");
         }
 
-        // Rule 6 — auto approved
-        log.info("[DECISION] All rules passed → AUTO_APPROVED");
-        return new DecisionResult(Decision.APPROVED,
-                "Toutes les vérifications automatiques sont passées", "AUTO");
+        // Rule 6 — All rules passed
+        log.info("[DECISION] All rules passed → PENDING_REVIEW for human confirmation");
+        return new DecisionResult(Decision.PENDING_REVIEW,
+                "Toutes les vérifications automatiques sont passées — confirmation humaine requise",
+                "VERIFICATION_OK");
     }
 }

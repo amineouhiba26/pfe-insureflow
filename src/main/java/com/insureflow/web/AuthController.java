@@ -1,108 +1,48 @@
 package com.insureflow.web;
 
-import com.insureflow.domain.port.out.ClientRepository;
-import com.insureflow.infrastructure.security.JwtService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
 /**
- * Authentication endpoints.
- *
- * Login with fullName + cin — no password needed for MVP.
- * The BSM specifically requested name + CIN as authentication method.
- *
- * In production this would use hashed passwords or OTP via SMS.
- * For the PFE demo, name + CIN is sufficient.
+ * Auth info endpoint — returns Keycloak config to the frontend.
+ * Login/logout/registration is handled entirely by Keycloak.
+ * Spring Boot only verifies tokens — never handles credentials.
  */
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
 
-    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+    @Value("${keycloak.auth-server-url}")
+    private String keycloakUrl;
 
-    private final ClientRepository clientRepository;
-    private final JwtService       jwtService;
+    @Value("${keycloak.realm}")
+    private String realm;
 
-    public AuthController(ClientRepository clientRepository,
-                          JwtService jwtService) {
-        this.clientRepository = clientRepository;
-        this.jwtService       = jwtService;
-    }
+    @Value("${keycloak.frontend-client-id}")
+    private String clientId;
 
-    /**
-     * Client login.
-     * POST /api/v1/auth/login
-     * Body: { "fullName": "Ali Al Mansouri", "cin": "05739884" }
-     */
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        log.info("[AUTH] Login attempt for cin={}", request.cin());
-
-        var clientOpt = clientRepository.findByNationalId(request.cin());
-
-        if (clientOpt.isEmpty()) {
-            log.warn("[AUTH] CIN not found: {}", request.cin());
-            return ResponseEntity.status(401)
-                    .body(Map.of("error", "Client non trouvé"));
-        }
-
-        var client = clientOpt.get();
-
-        // Verify name matches (case insensitive)
-        if (!client.getFullName().equalsIgnoreCase(request.fullName().trim())) {
-            log.warn("[AUTH] Name mismatch for cin={}", request.cin());
-            return ResponseEntity.status(401)
-                    .body(Map.of("error", "Nom incorrect"));
-        }
-
-        String token = jwtService.generateToken(
-                client.getId(),
-                client.getFullName(),
-                client.getNationalId(),
-                "CLIENT"
-        );
-
-        log.info("[AUTH] Login successful for clientId={}", client.getId());
-
+    @GetMapping("/config")
+    public ResponseEntity<?> getKeycloakConfig() {
         return ResponseEntity.ok(Map.of(
-                "token",    token,
-                "clientId", client.getId().toString(),
-                "fullName", client.getFullName(),
-                "role",     "CLIENT"
+                "url",      keycloakUrl,
+                "realm",    realm,
+                "clientId", clientId
         ));
     }
 
-    /**
-     * Admin login — hardcoded for demo.
-     * In production this would use a separate admin table.
-     * POST /api/v1/auth/admin/login
-     */
-    @PostMapping("/admin/login")
-    public ResponseEntity<?> adminLogin(@RequestBody AdminLoginRequest request) {
-        if (!"admin".equals(request.username()) || !"insureflow2026".equals(request.password())) {
-            return ResponseEntity.status(401)
-                    .body(Map.of("error", "Identifiants incorrects"));
-        }
-
-        // Generate admin token with a fixed UUID for demo
-        String token = jwtService.generateToken(
-                java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
-                "Admin InsureFlow",
-                "ADMIN",
-                "ADMIN"
-        );
-
+    @GetMapping("/me")
+    public ResponseEntity<?> me(@AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity.ok(Map.of(
-                "token",    token,
-                "fullName", "Admin InsureFlow",
-                "role",     "ADMIN"
+                "sub",          jwt.getSubject(),
+                "cin",          jwt.getClaim("cin") != null ? jwt.getClaim("cin") : "NOT FOUND",
+                "username",     jwt.getClaim("preferred_username"),
+                "realm_access", jwt.getClaim("realm_access") != null ? jwt.getClaim("realm_access") : "NOT FOUND",
+                "roles",        jwt.getClaim("roles") != null ? jwt.getClaim("roles") : "NOT FOUND"
         ));
     }
-
-    public record LoginRequest(String fullName, String cin) {}
-    public record AdminLoginRequest(String username, String password) {}
 }

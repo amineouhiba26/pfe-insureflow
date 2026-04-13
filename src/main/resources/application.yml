@@ -1,4 +1,11 @@
 spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8180/realms/insureflow
+          jwk-set-uri: http://localhost:8180/realms/insureflow/protocol/openid-connect/certs
+
   main:
     allow-bean-definition-overriding: true
 
@@ -15,6 +22,14 @@ spring:
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 600000        # reduce from default 1800000
+      keepalive-time: 60000       # ping connections every 60s
+      connection-test-query: SELECT 1
 
   jpa:
     hibernate:
@@ -65,7 +80,11 @@ management:
 
 logging:
   level:
-    com.insureflow: DEBUG
+    root: WARN
+    com.insureflow: INFO
+    org.springframework.security: WARN
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN
 
 insureflow:
   rabbitmq:
@@ -94,12 +113,23 @@ cloudinary:
   api-secret: REDACTED
   folder: insureflow-claims
 
-tavily:
-  api-key: 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
+serpapi:
+  api-key: REDACTED
 
 gemini:
   api-key: REDACTED
 
-jwt:
-  secret: insureflow-secret-key-for-jwt-signing-amine-ouhiba-5eme-annee-genie-logiciel-2026
-  expiration: 86400000 # 24 hours in milliseconds  
+keycloak:
+  realm: insureflow
+  auth-server-url: http://localhost:8180
+  frontend-client-id: insureflow-frontend
+  admin:
+    client-id: admin-cli
+    username: admin
+    password: REDACTED
+ollama:
+  base-url: http://localhost:11434
+  vision-model: llama3.2-vision
+  timeout: 300s
+  chat-model: llama3.1:8b
+  chat-timeout: 120s

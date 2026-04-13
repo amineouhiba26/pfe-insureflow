@@ -10,50 +10,34 @@ import dev.langchain4j.service.spring.AiServiceWiringMode;
 public interface EstimatorAgent {
 
     @SystemMessage("""
-        Tu es un expert en évaluation de dommages matériels pour une compagnie d'assurance.
-        Tu identifies les éléments endommagés et leur sévérité. Tu ne fournis JAMAIS de prix.
+        Tu es un expert en évaluation de dommages pour une compagnie d'assurance.
+        Tu identifies les éléments endommagés et leur sévérité.
+        Tu ne fournis JAMAIS de prix ou de montants.
         
-        NIVEAUX DE SÉVÉRITÉ — critères stricts :
-        MINOR      → visible à l'œil mais fonctionnel : rayure, égratignure, bosse légère
-        MODERATE   → dommage fonctionnel, réparation nécessaire mais pas de remplacement complet
-        SEVERE     → structurellement endommagé, inutilisable, remplacement nécessaire
-        TOTAL_LOSS → destruction complète, irréparable, valeur résiduelle nulle
-        
-        NOMS D'ÉLÉMENTS — utilise ces termes EXACTS en anglais :
-        
-        VEHICLE_DAMAGE :
-          front bumper, rear bumper, hood, trunk, door, windshield, rear window,
-          side mirror, headlight, taillight, wheel, roof, engine, chassis
-        
-        PROPERTY_DAMAGE :
-          roof, wall, floor, window, door, kitchen, bathroom, electrical system,
-          furniture, appliances, facade, ceiling, foundation, plumbing
-        
-        HEALTH :
-          arm, leg, head, back, chest, face, hand, foot,
-          hospitalization, surgery, medication, rehabilitation
-        
-        THEFT :
-          vehicle, laptop, phone, jewelry, cash, documents, furniture, appliances,
-          tools, bicycle
+        NIVEAUX DE SÉVÉRITÉ :
+        MINOR      → cosmétique, fonctionnel malgré le dommage
+        MODERATE   → réparation nécessaire, usage réduit
+        SEVERE     → inutilisable, remplacement nécessaire
+        TOTAL_LOSS → destruction totale, irréparable
         
         RÈGLES ABSOLUES :
-        - JSON strict uniquement. Commence par { et termine par }. Aucun texte.
-        - "reasoning" en français, décrit ce que tu observes.
-        - N'invente JAMAIS de prix ou de montants.
-        - Si les informations sont insuffisantes → damagedElements vide, confidence 0.2.
-        - Sois conservateur sur la sévérité : ne mets TOTAL_LOSS que si clairement irréparable.
+        - JSON strict uniquement. Commence par { et termine par }.
+        - Les noms des éléments doivent être en FRANÇAIS.
+        - "reasoning" en français.
+        - N'invente JAMAIS de prix.
+        - Si informations insuffisantes → damagedElements vide, confidence 0.2.
+        - Sois conservateur sur TOTAL_LOSS.
         
         FORMAT OBLIGATOIRE :
         {
           "claimType": "VEHICLE_DAMAGE",
           "damagedElements": [
-            {"element": "front bumper", "severity": "SEVERE"},
-            {"element": "hood", "severity": "MODERATE"}
+            {"element": "pare-choc avant", "severity": "SEVERE"},
+            {"element": "capot", "severity": "MODERATE"}
           ],
           "overallSeverity": "SEVERE",
           "confidence": 0.88,
-          "reasoning": "Le pare-choc avant est arraché suite à la collision frontale. Le capot présente des déformations mais reste en place."
+          "reasoning": "Le pare-choc avant est arraché. Le capot présente des déformations."
         }
         """)
     @UserMessage("""
@@ -65,8 +49,8 @@ public interface EstimatorAgent {
         PHOTOS DISPONIBLES :
         {{photoUrls}}
         
-        Identifie chaque élément endommagé avec sa sévérité.
-        Sois précis et conservateur. Réponds UNIQUEMENT avec le JSON.
+        Identifie chaque élément endommagé avec sa sévérité en français.
+        Réponds UNIQUEMENT avec le JSON.
         """)
     String analyse(@V("claimType")   String claimType,
                    @V("description") String description,
