@@ -12,29 +12,19 @@ import java.time.Duration;
 @Configuration
 public class LangChain4jConfig {
 
-    @Value("${ollama.base-url}")
-    private String baseUrl;
+    @Value("${ollama.base-url}")        private String baseUrl;
+    @Value("${ollama.chat.model}")      private String chatModel;
+    @Value("${ollama.chat.timeout}")    private int    chatTimeout;
+    @Value("${ollama.vision.model}")    private String visionModel;
+    @Value("${ollama.vision.timeout}")  private int    visionTimeout;
 
-    @Value("${ollama.chat-model}")
-    private String chatModel;
-
-    @Value("${ollama.chat-timeout}")
-    private Duration chatTimeout;
-
-    @Value("${ollama.vision-model}")
-    private String visionModelName;
-
-    @Value("${ollama.timeout}")
-    private Duration visionTimeout;
-
-    @Bean
-    @Primary
+    @Bean @Primary
     public ChatLanguageModel chatLanguageModel() {
         return OllamaChatModel.builder()
                 .baseUrl(baseUrl)
                 .modelName(chatModel)
                 .temperature(0.1)
-                .timeout(chatTimeout)
+                .timeout(Duration.ofSeconds(chatTimeout))
                 .build();
     }
 
@@ -42,9 +32,9 @@ public class LangChain4jConfig {
     public ChatLanguageModel visionModel() {
         return OllamaChatModel.builder()
                 .baseUrl(baseUrl)
-                .modelName(visionModelName)
+                .modelName(visionModel)
                 .temperature(0.1)
-                .timeout(visionTimeout)
+                .timeout(Duration.ofSeconds(visionTimeout))
                 .build();
     }
 }

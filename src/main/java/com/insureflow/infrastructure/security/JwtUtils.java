@@ -27,6 +27,6 @@ public class JwtUtils {
                             HttpStatus.NOT_FOUND, "Client non trouvé pour CIN: " + cin));
         }
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                "CIN absent du token");
+                "CIN absent du token. Vérifiez la configuration du mapper Keycloak ou l'attribut utilisateur.");
     }
 }

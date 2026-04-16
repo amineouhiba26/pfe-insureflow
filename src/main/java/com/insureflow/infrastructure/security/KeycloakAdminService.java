@@ -48,9 +48,8 @@ public class KeycloakAdminService {
             String[] parts     = fullName.trim().split(" ", 2);
             String   firstName = parts[0];
             String   lastName  = parts.length > 1 ? parts[1] : "";
-            String   username  = fullName.toLowerCase()
-                                         .replace(" ", ".")
-                                         .replace("'", "");
+            String   username  = firstName.toLowerCase() + "." + 
+                                          lastName.toLowerCase().replace(" ", "");
 
             // Build user payload
             Map<String, Object> user = Map.of(

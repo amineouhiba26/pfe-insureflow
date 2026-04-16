@@ -44,6 +44,11 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: REDACTED
     ports:
       - "8180:8080"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   rabbitmq_data:
+  keycloak_data:

@@ -32,6 +32,7 @@ spring:
       connection-test-query: SELECT 1
 
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: validate
     show-sql: false
@@ -119,17 +120,22 @@ serpapi:
 gemini:
   api-key: REDACTED
 
+ollama:
+  base-url: http://localhost:11434
+  chat:
+    model: llama3.1:8b
+    timeout: 120
+  vision:
+    model: llama3.2-vision
+    timeout: 300
+
 keycloak:
   realm: insureflow
   auth-server-url: http://localhost:8180
   frontend-client-id: insureflow-frontend
+  sync:
+    enabled: true
   admin:
     client-id: admin-cli
     username: admin
     password: REDACTED
-ollama:
-  base-url: http://localhost:11434
-  vision-model: llama3.2-vision
-  timeout: 300s
-  chat-model: llama3.1:8b
-  chat-timeout: 120s
