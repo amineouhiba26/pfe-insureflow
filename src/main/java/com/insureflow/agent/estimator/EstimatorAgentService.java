@@ -21,6 +21,8 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class EstimatorAgentService {
@@ -75,16 +77,16 @@ public class EstimatorAgentService {
             String       vehicleInfo = extractVehicleInfo(event.getDescription(), claimType);
             boolean      hasPhotos  = photoUrls != null && !photoUrls.isEmpty();
 
-            // Strategy 1: vision model
+            // Step 1: Vision analysis (if photos available)
             String raw = null;
             if (hasPhotos) {
-                log.info("[ESTIMATOR] Analysing photos with llama3.2-vision");
+                log.info("[ESTIMATOR] Vision analysis with llama3.2-vision");
                 raw = visionAnalysisService.analyse(photoUrls, claimType);
             }
 
-            // Strategy 2: text fallback
+            // Step 2: Text fallback if no photos or vision failed
             if (raw == null) {
-                log.info("[ESTIMATOR] Fallback to text analysis");
+                log.info("[ESTIMATOR] Text analysis fallback");
                 raw = estimatorAgent.analyse(
                         claimType,
                         event.getDescription(),
@@ -92,13 +94,18 @@ public class EstimatorAgentService {
                 );
             }
 
-            String json          = ResponseParser.extractJson(raw);
-            json                 = correctSeverity(json, event.getDescription());
+            String   json           = ResponseParser.extractJson(raw);
+            json                    = correctSeverity(json, event.getDescription());
             List<DamagedElement> elements       = parseDamagedElements(json);
             Severity             overallSeverity = parseOverallSeverity(json);
-            CostEstimate costs = lookupCosts(elements, claimType, vehicleInfo, overallSeverity);
-            String enriched   = buildResultJson(json, costs, imageScore, claimType, hasPhotos && raw != null);
-            double conf       = ResponseParser.getDouble(json, "confidence", 0.5);
+
+            // Step 3: Price each element via SerpAPI
+            CostEstimate costs = lookupCosts(elements, claimType, vehicleInfo,
+                    overallSeverity, event.getDescription());
+
+            String enriched = buildResultJson(json, costs, imageScore, claimType,
+                    hasPhotos && raw != null);
+            double conf     = ResponseParser.getDouble(json, "confidence", 0.5);
 
             return AgentResult.success(enriched, conf, "");
 
@@ -108,257 +115,260 @@ public class EstimatorAgentService {
         }
     }
 
-    // ── Pricing ────────────────────────────────────────────────────────────────
+    // ── Pricing — SerpAPI first, LLM fallback only on total failure ───────────
 
-    private PricingResearchService.PriceRange llmFallbackEstimate(
-            String element, String severity, String vehicleInfo, String claimType) {
-        String prompt = String.format(
-            "Tu es un expert en assurance automobile en Tunisie. " +
-            "Donne UNIQUEMENT une estimation minimale et maximale du prix en TND " +
-            "pour la réparation/remplacement de '%s' avec sévérité '%s' sur %s. " +
-            "Réponds OBLIGATOIREMENT ET UNIQUEMENT avec un objet JSON strict comme ceci: {\"min\": 800, \"max\": 2500}. " +
-            "Ne mets AUCUN texte autour du JSON.",
-            element, severity,
-            vehicleInfo != null ? vehicleInfo : "standard"
-        );
-        try {
-            String response = estimatorAgent.analyse(claimType, prompt, "Aucune photo").trim();
-            log.info("[ESTIMATOR] LLM raw fallback response: {}", response);
-
-            BigDecimal min = null;
-            BigDecimal max = null;
-
-            // Strategy 1: strict JSON
-            String jsonText = ResponseParser.extractJson(response);
-            JsonNode node = mapper.readTree(jsonText);
-            try {
-                if (node.hasNonNull("min")) min = new BigDecimal(node.get("min").asText());
-                else if (node.hasNonNull("minimum")) min = new BigDecimal(node.get("minimum").asText());
-                
-                if (node.hasNonNull("max")) max = new BigDecimal(node.get("max").asText());
-                else if (node.hasNonNull("maximum")) max = new BigDecimal(node.get("maximum").asText());
-            } catch (Exception ignored) {}
-
-            // Strategy 2: regex robust parsing if JSON failed or was empty
-            if (min == null || max == null || (min.compareTo(BigDecimal.ZERO) == 0 && max.compareTo(BigDecimal.ZERO) == 0)) {
-                java.util.regex.Matcher m = java.util.regex.Pattern.compile("(?:\\s|^|\\D)(\\d{2,}(?:[\\s.,]\\d{3})*(?:[.,]\\d{1,2})?)(?:\\s|$|\\D)").matcher(response);
-                java.util.List<BigDecimal> numbers = new java.util.ArrayList<>();
-                while (m.find()) {
-                    String s = m.group(1).replaceAll("\\s", "");
-                    if (s.matches("\\d+[.,]\\d{3}")) {
-                        s = s.replaceAll("[.,]", "");
-                    } else if (s.matches("\\d+[.,]\\d{1,2}")) {
-                        s = s.replaceAll(",", ".");
-                    }
-                    try {
-                        BigDecimal v = new BigDecimal(s);
-                        if (v.compareTo(new BigDecimal("20")) > 0 && v.longValue() != 2024 && v.longValue() != 2025 && v.longValue() != 2026) {
-                            numbers.add(v);
-                        }
-                    } catch (Exception ignored) {}
-                }
-                if (numbers.size() >= 2) {
-                    java.util.Collections.sort(numbers);
-                    min = numbers.get(0);
-                    max = numbers.get(numbers.size() - 1);
-                } else if (numbers.size() == 1) {
-                    min = numbers.get(0).multiply(new BigDecimal("0.8")).setScale(0, RoundingMode.HALF_UP);
-                    max = numbers.get(0).multiply(new BigDecimal("1.2")).setScale(0, RoundingMode.HALF_UP);
-                }
-            }
-
-            // Strategy 3: Ultimate failsafe if model output complete garbage
-            if (min == null || max == null || min.compareTo(BigDecimal.ZERO) <= 0) {
-                log.warn("[ESTIMATOR] All parsing strategies failed for LLM response. Engaging unbreakable synthetic fallback for '{}'.", element);
-                min = new BigDecimal("450");
-                max = new BigDecimal("1250");
-                if ("TOTAL_LOSS".equals(severity)) {
-                    min = new BigDecimal("15000");
-                    max = new BigDecimal("45000");
-                }
-            }
-
-            if (min.compareTo(max) > 0) {
-                BigDecimal temp = min; min = max; max = temp;
-            }
-
-            BigDecimal mid = min.add(max).divide(BigDecimal.valueOf(2), 2, RoundingMode.HALF_UP);
-            log.info("[ESTIMATOR] LLM fallback finalized for '{}' sev={}: {}-{} TND", element, severity, min, max);
-            return new PricingResearchService.PriceRange(min, max, mid,
-                "estimation LLM (non fiable)", "LLaMA 3.1 — estimation non vérifiée");
-            
-        } catch (Exception e) {
-            log.error("[ESTIMATOR] Fatal error in LLM fallback for '{}': {}", element, e.getMessage());
-            // Absolute unbreakable fallback
-            BigDecimal dMin = new BigDecimal("500");
-            BigDecimal dMax = new BigDecimal("1500");
-            if ("TOTAL_LOSS".equals(severity)) {
-                dMin = new BigDecimal("15000");
-                dMax = new BigDecimal("45000");
-            }
-            return new PricingResearchService.PriceRange(dMin, dMax, dMin.add(dMax).divide(BigDecimal.valueOf(2), 2, RoundingMode.HALF_UP), "erreur technique", "Barème de secours");
-        }
-    }
-
-    /**
-     * Deterministic cost estimator.
-     *
-     * Algorithm:
-     *  1. Each element gets a base cost from a fixed severity table.
-     *  2. The base cost is scaled by the element's importance weight.
-     *  3. PricingResearchService is called as optional enrichment only —
-     *     its result is blended at 20 % weight and only accepted when it
-     *     falls within the overall-severity consistency bounds.
-     *  4. The summed total is hard-clamped to the consistency bounds for
-     *     overallSeverity, guaranteeing a coherent final figure.
-     */
     private CostEstimate lookupCosts(List<DamagedElement> elements,
                                      String claimType,
                                      String vehicleInfo,
-                                     Severity overallSeverity) {
+                                     Severity overallSeverity,
+                                     String description) {
 
         BigDecimal   totalMin  = BigDecimal.ZERO;
         BigDecimal   totalMax  = BigDecimal.ZERO;
         List<String> breakdown = new ArrayList<>();
-        List<DamagedElement> pricedElements;
+        int          serpHits  = 0;
 
+        // TOTAL_LOSS: price ONLY the vehicle replacement — don't stack individual parts
+        List<DamagedElement> toPrice;
         if (overallSeverity == Severity.TOTAL_LOSS && "VEHICLE_DAMAGE".equals(claimType)) {
-            pricedElements = List.of(new DamagedElement("véhicule", Severity.TOTAL_LOSS));
-            log.info("[ESTIMATOR] TOTAL_LOSS — pricing single véhicule element only");
+            String vehicleName = vehicleInfo != null ? vehicleInfo : "véhicule";
+            toPrice = List.of(new DamagedElement(vehicleName, Severity.TOTAL_LOSS));
+            log.info("[ESTIMATOR] TOTAL_LOSS → pricing single vehicle element: '{}'", vehicleName);
         } else {
-            pricedElements = new ArrayList<>(elements);
+            toPrice = new ArrayList<>(elements);
         }
 
-        for (DamagedElement el : pricedElements) {
-            try {
-                Optional<PricingResearchService.PriceRange> ext =
-                        pricingResearchService.searchRepairCost(
-                                el.name(), el.severity().name(), vehicleInfo, claimType);
+        // Price each element via SerpAPI
+        for (DamagedElement el : toPrice) {
+            Optional<PricingResearchService.PriceRange> found =
+                    pricingResearchService.searchRepairCost(
+                            el.name(), el.severity().name(), vehicleInfo, claimType);
 
-                if (ext.isPresent()) {
-                BigDecimal elMin = ext.get().min();
-                BigDecimal elMax = ext.get().max();
-                String source = ext.get().source();
-
-                totalMin = totalMin.add(elMin);
-                totalMax = totalMax.add(elMax);
-
+            if (found.isPresent()) {
+                PricingResearchService.PriceRange p = found.get();
+                totalMin = totalMin.add(p.min());
+                totalMax = totalMax.add(p.max());
                 breakdown.add(String.format("%s (%s): %.0f–%.0f TND [%s]",
-                    el.name(), el.severity().name(),
-                    elMin.doubleValue(), elMax.doubleValue(), source));
-
-                log.info("[ESTIMATOR] Element '{}' sev={}: {}–{} TND [{}]",
-                    el.name(), el.severity(),
-                    elMin.toPlainString(), elMax.toPlainString(), source);
+                        el.name(), el.severity(), p.min(), p.max(), p.source()));
+                serpHits++;
+                log.info("[ESTIMATOR] SerpAPI hit — '{}' {}: {}-{} TND",
+                        el.name(), el.severity(), p.min(), p.max());
             } else {
-                // SerpAPI found nothing — try LLM fallback
-                PricingResearchService.PriceRange llm = llmFallbackEstimate(
-                    el.name(), el.severity().name(), vehicleInfo, claimType);
-                if (llm != null) {
-                    totalMin = totalMin.add(llm.min());
-                    totalMax = totalMax.add(llm.max());
-                    breakdown.add(String.format("%s (%s): %.0f–%.0f TND [%s]",
-                        el.name(), el.severity().name(),
-                        llm.min().doubleValue(), llm.max().doubleValue(), llm.source()));
-                } else {
-                    breakdown.add(String.format("%s (%s): prix non disponible", el.name(), el.severity()));
-                }
-            }
-            } catch (Exception e) {
-            log.warn("[ESTIMATOR] Pricing failed for '{}' sev={}: {}",
-                el.name(), el.severity(), e.getMessage());
+                breakdown.add(String.format("%s (%s): recherche infructueuse",
+                        el.name(), el.severity()));
+                log.warn("[ESTIMATOR] No SerpAPI price for '{}' sev={}", el.name(), el.severity());
             }
         }
 
-        if (totalMin.compareTo(BigDecimal.ZERO) == 0 && totalMax.compareTo(BigDecimal.ZERO) == 0) {
-            Optional<PricingResearchService.PriceRange> fallback =
-                pricingResearchService.searchRepairCost("default", overallSeverity.name(), vehicleInfo, claimType);
-            if (fallback.isPresent()) {
-            totalMin = fallback.get().min();
-            totalMax = fallback.get().max();
-            breakdown.add(String.format("default (%s): %.0f–%.0f TND [%s]",
-                overallSeverity.name(),
-                totalMin.doubleValue(), totalMax.doubleValue(), fallback.get().source()));
+        // If SerpAPI found NOTHING at all → LLM fallback for the whole claim
+        String pricingMethod;
+        String pricingConfidence;
+
+        if (serpHits == 0) {
+            log.warn("[ESTIMATOR] Zero SerpAPI hits — triggering LLM fallback for entire claim");
+            PricingResearchService.PriceRange llm =
+                    llmFallback(overallSeverity, claimType, vehicleInfo, description);
+
+            if (llm != null) {
+                totalMin = llm.min();
+                totalMax = llm.max();
+                breakdown.add(String.format("Estimation LLM (%s): %.0f–%.0f TND [NON FIABLE]",
+                        overallSeverity, llm.min(), llm.max()));
+                pricingMethod     = "llm_fallback";
+                pricingConfidence = "low";
+                log.info("[ESTIMATOR] LLM fallback: {}-{} TND", llm.min(), llm.max());
+            } else {
+                // Absolute last resort — still don't return 0, use severity minimum
+                long[] lastResort = lastResortRange(overallSeverity, claimType);
+                totalMin = BigDecimal.valueOf(lastResort[0]);
+                totalMax = BigDecimal.valueOf(lastResort[1]);
+                breakdown.add(String.format("Estimation minimale (%s): %.0f–%.0f TND [TRÈS APPROXIMATIF]",
+                        overallSeverity, totalMin, totalMax));
+                pricingMethod     = "fallback_minimal";
+                pricingConfidence = "very_low";
+                log.warn("[ESTIMATOR] Using last-resort range: {}-{} TND", totalMin, totalMax);
             }
+        } else if (serpHits < toPrice.size()) {
+            pricingMethod     = "mixed";
+            pricingConfidence = "medium";
+        } else {
+            pricingMethod     = "serp";
+            pricingConfidence = "high";
         }
 
         BigDecimal midpoint = totalMin.add(totalMax)
                 .divide(BigDecimal.valueOf(2), 2, RoundingMode.HALF_UP);
 
-        String pricingSource = "SerpAPI (fallback barème régional Tunisie si indisponible)";
-
-        log.info("[ESTIMATOR] Cost estimate: {}–{} TND overallSeverity={} source={}",
-                totalMin.toPlainString(), totalMax.toPlainString(), overallSeverity, pricingSource);
-
-        return new CostEstimate(totalMin, totalMax, midpoint, breakdown, pricingSource);
-    }
-
-    // ── Severity tables ────────────────────────────────────────────────────────
-
-    /**
-     * Hard consistency bounds [min, max] per overallSeverity.
-     * No final cost may fall outside these limits.
-     */
-    private long[] consistencyBounds(Severity severity) {
-        return switch (severity) {
-            case MINOR      -> new long[]{  50,    499};
-            case MODERATE   -> new long[]{ 300,   2000};
-            case SEVERE     -> new long[]{1500,   6000};
-            case TOTAL_LOSS -> new long[]{5000,  30000};
-        };
-    }
-
-    /** Per-element cost floor, driven by the element's own severity (before importance weight). */
-    private long elementBaseMin(Severity severity) {
-        return switch (severity) {
-            case MINOR      ->    40;
-            case MODERATE   ->   200;
-            case SEVERE     ->  1000;
-            case TOTAL_LOSS ->  4000;
-        };
-    }
-
-    /** Per-element cost ceiling, driven by the element's own severity (before importance weight). */
-    private long elementBaseMax(Severity severity) {
-        return switch (severity) {
-            case MINOR      ->   200;
-            case MODERATE   ->   800;
-            case SEVERE     ->  4000;
-            case TOTAL_LOSS -> 15000;
-        };
+        return new CostEstimate(totalMin, totalMax, midpoint, breakdown,
+                pricingMethod, pricingConfidence);
     }
 
     /**
-     * Importance weight [0.10 – 1.00] for a damaged element.
-     * Matches both French and English element names from the LLM.
+     * LLM fallback — called ONLY when ALL SerpAPI queries failed.
+     * Forces the LLM to give a specific range, not vague prose.
      */
-    private double elementImportanceWeight(String elementName) {
-        String el = elementName.toLowerCase();
-        if (el.contains("engine")       || el.contains("moteur"))                          return 1.00;
-        if (el.contains("chassis")      || el.contains("châssis") || el.contains("frame")) return 0.95;
-        if (el.contains("transmission") || el.contains("boite"))                           return 0.90;
-        if (el.contains("airbag"))                                                          return 0.85;
-        if (el.contains("habitacle")    || el.contains("cabin"))                           return 0.80;
-        if (el.contains("toit")         || el.contains("roof"))                            return 0.75;
-        if (el.contains("capot")        || el.contains("hood"))                            return 0.65;
-        if (el.contains("coffre")       || el.contains("trunk"))                           return 0.60;
-        if (el.contains("portière")     || el.contains("door"))                            return 0.55;
-        if (el.contains("pare-choc")    || el.contains("bumper"))                          return 0.50;
-        if (el.contains("pare-brise")   || el.contains("windshield"))                      return 0.45;
-        if (el.contains("aile")         || el.contains("fender"))                          return 0.45;
-        if (el.contains("roue")         || el.contains("jante") || el.contains("wheel"))   return 0.40;
-        if (el.contains("phare")        || el.contains("headlight"))                       return 0.35;
-        if (el.contains("feu")          || el.contains("taillight"))                       return 0.30;
-        if (el.contains("rétroviseur")  || el.contains("mirror"))                          return 0.25;
-        if (el.contains("bosselure")    || el.contains("dent"))                            return 0.20;
-        if (el.contains("rayure")       || el.contains("scratch"))                         return 0.10;
-        return 0.40; // default for unrecognised elements
+    private PricingResearchService.PriceRange llmFallback(Severity severity, String claimType,
+                                                           String vehicleInfo, String description) {
+        try {
+            String vehicle = vehicleInfo != null ? vehicleInfo : "véhicule standard";
+
+            // LLM returns JSON with damagedElements — ask it to estimate each part price
+            // then sum them up. We parse whatever it returns and look for numbers.
+            String prompt = String.format(
+                    "Sinistre: %s, véhicule: %s, sévérité: %s.\nDescription: %s",
+                    claimType, vehicle, severity.name(),
+                    description != null ? description : "Non fournie");
+
+            String raw = estimatorAgent.analyse(claimType, prompt, "Aucune photo").trim();
+            log.info("[ESTIMATOR] LLM fallback raw response: '{}'", raw);
+
+            // Strategy 1: find explicit MIN-MAX pattern anywhere in response
+            Matcher rangeMatcher = Pattern.compile("(\\d{2,7})\\s*[-–]\\s*(\\d{2,7})").matcher(raw);
+            List<long[]> found = new ArrayList<>();
+            while (rangeMatcher.find()) {
+                long min = Long.parseLong(rangeMatcher.group(1));
+                long max = Long.parseLong(rangeMatcher.group(2));
+                if (min >= 1990 && min <= 2030) continue;
+                if (max > min && (double) max / min <= 15.0) {
+                    found.add(new long[]{min, max});
+                }
+            }
+
+            if (!found.isEmpty()) {
+                long fMin = found.stream().mapToLong(r -> r[0]).min().orElse(0);
+                long fMax = found.stream().mapToLong(r -> r[1]).max().orElse(0);
+                BigDecimal min = BigDecimal.valueOf(fMin);
+                BigDecimal max = BigDecimal.valueOf(fMax);
+                BigDecimal mid = min.add(max).divide(BigDecimal.valueOf(2), 2, RoundingMode.HALF_UP);
+                log.info("[ESTIMATOR] LLM fallback parsed range: {}-{} TND", min, max);
+                return new PricingResearchService.PriceRange(
+                        min, max, mid, "estimation LLM",
+                        "LLaMA 3.1 — estimation non vérifiée (non fiable)", "TND");
+            }
+
+            // Strategy 2: parse JSON damagedElements and price each via severity
+            try {
+                String json = ResponseParser.extractJson(raw);
+                JsonNode root = mapper.readTree(json);
+                JsonNode elements = root.path("damagedElements");
+                if (elements.isArray() && elements.size() > 0) {
+                    long totalMin = 0, totalMax = 0;
+                    for (JsonNode el : elements) {
+                        String elSev = el.path("severity").asText("MODERATE");
+                        long[] range = lastResortRange(parseSeverity(elSev), claimType);
+                        totalMin += range[0] / 3; // per-element share of range
+                        totalMax += range[1] / 3;
+                    }
+                    if (totalMin > 0) {
+                        BigDecimal min = BigDecimal.valueOf(totalMin);
+                        BigDecimal max = BigDecimal.valueOf(totalMax);
+                        BigDecimal mid = min.add(max).divide(BigDecimal.valueOf(2), 2, RoundingMode.HALF_UP);
+                        log.info("[ESTIMATOR] LLM fallback element-based: {}-{} TND", min, max);
+                        return new PricingResearchService.PriceRange(
+                                min, max, mid, "estimation LLM éléments",
+                                "LLaMA 3.1 — estimation par éléments (non fiable)", "TND");
+                    }
+                }
+            } catch (Exception ignored) {}
+
+        } catch (Exception e) {
+            log.error("[ESTIMATOR] LLM fallback failed: {}", e.getMessage());
+        }
+        return null;
     }
 
-    private BigDecimal clampToBounds(BigDecimal value, long min, long max) {
-        if (value.compareTo(BigDecimal.valueOf(min)) < 0) return BigDecimal.valueOf(min);
-        if (value.compareTo(BigDecimal.valueOf(max)) > 0) return BigDecimal.valueOf(max);
-        return value;
+    /**
+     * Absolute last resort — severity-based minimum range.
+     * Used only when both SerpAPI AND LLM fail completely.
+     * Still never returns 0.
+     */
+    private long[] lastResortRange(Severity severity, String claimType) {
+        if ("VEHICLE_DAMAGE".equals(claimType)) {
+            return switch (severity) {
+                case MINOR      -> new long[]{   80,    600};
+                case MODERATE   -> new long[]{  500,   3000};
+                case SEVERE     -> new long[]{ 2000,  12000};
+                case TOTAL_LOSS -> new long[]{30000, 120000};
+            };
+        } else {
+            return switch (severity) {
+                case MINOR      -> new long[]{  150,   1000};
+                case MODERATE   -> new long[]{  800,   5000};
+                case SEVERE     -> new long[]{ 5000,  25000};
+                case TOTAL_LOSS -> new long[]{25000, 300000};
+            };
+        }
+    }
+
+    // ── Severity post-processing ──────────────────────────────────────────────
+
+    private String correctSeverity(String json, String description) {
+        try {
+            JsonNode root = mapper.readTree(json);
+            if (!root.isObject()) return json;
+
+            Severity current = parseSeverity(root.path("overallSeverity").asText("MODERATE"));
+            int totalLossCount = 0;
+            int severeCount    = 0;
+            int totalElements  = 0;
+
+            JsonNode elements = root.path("damagedElements");
+            if (elements.isArray()) {
+                totalElements = elements.size();
+                for (JsonNode item : elements) {
+                    Severity s = parseSeverity(item.path("severity").asText("MINOR"));
+                    if (s == Severity.TOTAL_LOSS) totalLossCount++;
+                    if (s == Severity.SEVERE || s == Severity.TOTAL_LOSS) severeCount++;
+                }
+            }
+
+            // TOTAL_LOSS requires strong evidence — not just one part flagged TOTAL_LOSS
+            // A destroyed bumper alone is SEVERE, not TOTAL_LOSS
+            // TOTAL_LOSS = majority of vehicle is gone (chassis, cabin, engine destroyed)
+            boolean structuralKeywords = false;
+            String desc = description == null ? "" : description.toLowerCase();
+            for (String kw : List.of(
+                    "châssis tordu", "châssis plié", "habitacle écrasé", "moteur éjecté",
+                    "toit effondré", "retourné", "renversé", "complètement détruit",
+                    "completely destroyed", "perte totale", "épave", "irréparable",
+                    "destruction totale", "véhicule inutilisable")) {
+                if (desc.contains(kw)) { structuralKeywords = true; break; }
+            }
+
+            // Upgrade to TOTAL_LOSS only if:
+            // - 3+ elements are TOTAL_LOSS, OR
+            // - majority (>60%) of elements are SEVERE/TOTAL_LOSS AND structural keywords present, OR
+            // - description explicitly says total loss keywords
+            if (totalLossCount >= 3) {
+                current = Severity.TOTAL_LOSS;
+            } else if (structuralKeywords) {
+                current = Severity.TOTAL_LOSS;
+            } else if (totalElements > 0
+                    && (double) severeCount / totalElements > 0.6
+                    && totalLossCount >= 2) {
+                current = Severity.TOTAL_LOSS;
+            } else if (current == Severity.TOTAL_LOSS && totalLossCount < 2 && !structuralKeywords) {
+                // Downgrade spurious TOTAL_LOSS — vision model overcalled it
+                if (severeCount >= 2) {
+                    current = Severity.SEVERE;
+                    log.info("[ESTIMATOR] Downgraded spurious TOTAL_LOSS → SEVERE " +
+                            "(only {} TOTAL_LOSS elements, no structural keywords)", totalLossCount);
+                }
+            }
+
+            // Upgrade MINOR/MODERATE if many SEVERE elements
+            if (severeCount >= 3 && current != Severity.TOTAL_LOSS) {
+                if (current == Severity.MINOR || current == Severity.MODERATE)
+                    current = Severity.SEVERE;
+            }
+
+            ((com.fasterxml.jackson.databind.node.ObjectNode) root)
+                    .put("overallSeverity", current.name());
+            return mapper.writeValueAsString(root);
+        } catch (Exception e) {
+            log.warn("[ESTIMATOR] correctSeverity failed: {}", e.getMessage());
+            return json;
+        }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -371,22 +381,14 @@ public class EstimatorAgentService {
 
     private String extractVehicleInfo(String description, String claimType) {
         if (!"VEHICLE_DAMAGE".equals(claimType) || description == null) return null;
-
-        // Match "Brand Model" — stop at punctuation OR known noise words
-        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+        Matcher m = Pattern.compile(
                 "(Ford Ranger|Ford Focus|Ford Transit|Toyota Hilux|Toyota Corolla|" +
                 "Peugeot 208|Peugeot 308|Renault Clio|Renault Duster|Renault Symbol|" +
                 "Volkswagen Golf|Hyundai Tucson|Hyundai i10|Kia Sportage|Kia Picanto|" +
                 "Fiat Punto|Fiat 500|Citroën C3|Citroën Berlingo|" +
                 "Mercedes Classe|BMW Série|Audi A|Nissan Qashqai|Mitsubishi L200)",
-                java.util.regex.Pattern.CASE_INSENSITIVE
-        );
-
-        java.util.regex.Matcher m = pattern.matcher(description);
-        if (m.find()) {
-            return m.group(0).trim();
-        }
-        return null;
+                Pattern.CASE_INSENSITIVE).matcher(description);
+        return m.find() ? m.group(0).trim() : null;
     }
 
     private List<DamagedElement> parseDamagedElements(String json) {
@@ -407,28 +409,14 @@ public class EstimatorAgentService {
         return elements;
     }
 
-    private String buildResultJson(String llmJson, CostEstimate costs,
-                                   double imageQuality, String claimType,
-                                   boolean visionUsed) {
-        try {
-            JsonNode llm = mapper.readTree(llmJson);
-            return mapper.writeValueAsString(
-                    mapper.createObjectNode()
-                            .put("claimType",         claimType)
-                            .put("overallSeverity",   llm.path("overallSeverity").asText("MODERATE"))
-                            .put("estimatedCostMin",  costs.min().toString())
-                            .put("estimatedCostMax",  costs.max().toString())
-                            .put("estimatedCost",     costs.midpoint().toString())
-                            .put("imageQualityScore", imageQuality)
-                            .put("analysisMethod",    visionUsed ? "llama3.2-vision" : "llama3.1-textual")
-                            .put("pricingSource",     costs.pricingSource())
-                            .put("confidence",        llm.path("confidence").asDouble(0.5))
-                            .put("reasoning",         llm.path("reasoning").asText(""))
-                            .set("costBreakdown",     mapper.valueToTree(costs.breakdown()))
-            );
-        } catch (Exception e) {
-            return llmJson;
-        }
+    private Severity parseSeverity(String value) {
+        try { return Severity.valueOf(value.toUpperCase().trim()); }
+        catch (Exception e) { return Severity.MINOR; }
+    }
+
+    private Severity parseOverallSeverity(String json) {
+        try { return parseSeverity(mapper.readTree(json).path("overallSeverity").asText("MODERATE")); }
+        catch (Exception e) { return Severity.MODERATE; }
     }
 
     private BigDecimal parseTotalCost(String json) {
@@ -436,79 +424,39 @@ public class EstimatorAgentService {
             String cost = mapper.readTree(json).path("estimatedCost").asText(null);
             if (cost == null || cost.equals("null")) return null;
             BigDecimal val = new BigDecimal(cost);
-            if (val.compareTo(BigDecimal.ZERO) == 0) return null;
-            return val;
+            return val.compareTo(BigDecimal.ZERO) == 0 ? null : val;
         } catch (Exception e) { return null; }
     }
 
-    private Severity parseSeverity(String value) {
-        try { return Severity.valueOf(value.toUpperCase().trim()); }
-        catch (Exception e) { return Severity.MINOR; }
-    }
-
-    private Severity parseOverallSeverity(String json) {
+    private String buildResultJson(String llmJson, CostEstimate costs,
+                                   double imageQuality, String claimType,
+                                   boolean visionUsed) {
         try {
-            String val = mapper.readTree(json).path("overallSeverity").asText("MODERATE");
-            return parseSeverity(val);
-        } catch (Exception e) {
-            return Severity.MODERATE;
-        }
-    }
-
-    private String correctSeverity(String json, String description) {
-        try {
-            JsonNode root = mapper.readTree(json);
-            if (!root.isObject()) return json;
-
-            Severity current = parseSeverity(root.path("overallSeverity").asText("MODERATE"));
-
-            int totalLossCount = 0;
-            int severeCount = 0;
-
-            JsonNode elements = root.path("damagedElements");
-            if (elements.isArray()) {
-                for (JsonNode item : elements) {
-                    Severity s = parseSeverity(item.path("severity").asText("MINOR"));
-                    if (s == Severity.TOTAL_LOSS) totalLossCount++;
-                    if (s == Severity.SEVERE) severeCount++;
-                }
-            }
-
-            if (totalLossCount >= 1) {
-                current = Severity.TOTAL_LOSS;
-            }
-
-            if (severeCount >= 3 && current != Severity.TOTAL_LOSS) {
-                if (current == Severity.MINOR || current == Severity.MODERATE) {
-                    current = Severity.SEVERE;
-                }
-            }
-
-            String desc = description == null ? "" : description.toLowerCase();
-            List<String> keywords = List.of(
-                    "écrasé", "totalement détruit", "rocher tombé", "retourné", "renversé",
-                    "irréparable", "complètement détruit", "completely destroyed", "total loss",
-                    "châssis tordu", "habitacle écrasé", "moteur éjecté", "toit effondré",
-                    "véhicule inutilisable", "perte totale", "épave"
+            JsonNode llm = mapper.readTree(llmJson);
+            return mapper.writeValueAsString(
+                    mapper.createObjectNode()
+                            .put("claimType",          claimType)
+                            .put("overallSeverity",    llm.path("overallSeverity").asText("MODERATE"))
+                            .put("estimatedCostMin",   costs.min().toString())
+                            .put("estimatedCostMax",   costs.max().toString())
+                            .put("estimatedCost",      costs.midpoint().toString())
+                            .put("currency",           "TND")
+                            .put("pricingMethod",      costs.pricingMethod())
+                            .put("pricingConfidence",  costs.pricingConfidence())
+                            .put("imageQualityScore",  imageQuality)
+                            .put("analysisMethod",     visionUsed ? "llama3.2-vision" : "llama3.1-textual")
+                            .put("confidence",         llm.path("confidence").asDouble(0.5))
+                            .put("reasoning",          llm.path("reasoning").asText(""))
+                            .set("costBreakdown",      mapper.valueToTree(costs.breakdown()))
             );
-
-            for (String keyword : keywords) {
-                if (desc.contains(keyword)) {
-                    current = Severity.TOTAL_LOSS;
-                    break;
-                }
-            }
-
-            ((com.fasterxml.jackson.databind.node.ObjectNode) root).put("overallSeverity", current.name());
-            return mapper.writeValueAsString(root);
         } catch (Exception e) {
-            log.warn("[ESTIMATOR] correctSeverity failed: {}", e.getMessage());
-            return json;
+            return llmJson;
         }
     }
 
     private record DamagedElement(String name, Severity severity) {}
-    private record CostEstimate(BigDecimal min, BigDecimal max,
-                                BigDecimal midpoint, List<String> breakdown,
-                                String pricingSource) {}
+
+    private record CostEstimate(
+            BigDecimal min, BigDecimal max, BigDecimal midpoint,
+            List<String> breakdown, String pricingMethod, String pricingConfidence) {}
 }
