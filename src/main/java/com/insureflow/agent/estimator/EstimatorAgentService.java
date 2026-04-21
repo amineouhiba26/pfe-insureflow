@@ -95,7 +95,7 @@ public class EstimatorAgentService {
             }
 
             String   json           = ResponseParser.extractJson(raw);
-            json                    = correctSeverity(json, event.getDescription());
+            json                    = correctSeverity(json, event.getDescription(), claimType);
             List<DamagedElement> elements       = parseDamagedElements(json);
             Severity             overallSeverity = parseOverallSeverity(json);
 
@@ -128,12 +128,16 @@ public class EstimatorAgentService {
         List<String> breakdown = new ArrayList<>();
         int          serpHits  = 0;
 
-        // TOTAL_LOSS: price ONLY the vehicle replacement — don't stack individual parts
+        // TOTAL_LOSS: price ONLY the replacement — don't stack individual parts
         List<DamagedElement> toPrice;
         if (overallSeverity == Severity.TOTAL_LOSS && "VEHICLE_DAMAGE".equals(claimType)) {
             String vehicleName = vehicleInfo != null ? vehicleInfo : "véhicule";
             toPrice = List.of(new DamagedElement(vehicleName, Severity.TOTAL_LOSS));
-            log.info("[ESTIMATOR] TOTAL_LOSS → pricing single vehicle element: '{}'", vehicleName);
+            log.info("[ESTIMATOR] TOTAL_LOSS vehicle → pricing single element: '{}'", vehicleName);
+        } else if (overallSeverity == Severity.TOTAL_LOSS && "PROPERTY_DAMAGE".equals(claimType)) {
+            toPrice = List.of(new DamagedElement("bâtiment", Severity.TOTAL_LOSS));
+            log.info("[ESTIMATOR] TOTAL_LOSS property → single bâtiment element");
+            log.info("[ESTIMATOR] toPrice set to single bâtiment element, size=1");
         } else {
             toPrice = new ArrayList<>(elements);
         }
@@ -208,7 +212,7 @@ public class EstimatorAgentService {
      * Forces the LLM to give a specific range, not vague prose.
      */
     private PricingResearchService.PriceRange llmFallback(Severity severity, String claimType,
-                                                           String vehicleInfo, String description) {
+                                                          String vehicleInfo, String description) {
         try {
             String vehicle = vehicleInfo != null ? vehicleInfo : "véhicule standard";
 
@@ -290,19 +294,26 @@ public class EstimatorAgentService {
                 case SEVERE     -> new long[]{ 2000,  12000};
                 case TOTAL_LOSS -> new long[]{30000, 120000};
             };
+        } else if ("PROPERTY_DAMAGE".equals(claimType)) {
+            return switch (severity) {
+                case MINOR      -> new long[]{   200,   2000};
+                case MODERATE   -> new long[]{  2000,  10000};
+                case SEVERE     -> new long[]{ 10000,  50000};
+                case TOTAL_LOSS -> new long[]{50000,  500000};
+            };
         } else {
             return switch (severity) {
-                case MINOR      -> new long[]{  150,   1000};
-                case MODERATE   -> new long[]{  800,   5000};
-                case SEVERE     -> new long[]{ 5000,  25000};
-                case TOTAL_LOSS -> new long[]{25000, 300000};
+                case MINOR      -> new long[]{  200,   2000};
+                case MODERATE   -> new long[]{ 1000,   8000};
+                case SEVERE     -> new long[]{ 5000,  30000};
+                case TOTAL_LOSS -> new long[]{30000, 300000};
             };
         }
     }
 
     // ── Severity post-processing ──────────────────────────────────────────────
 
-    private String correctSeverity(String json, String description) {
+    private String correctSeverity(String json, String description, String claimType) {
         try {
             JsonNode root = mapper.readTree(json);
             if (!root.isObject()) return json;
@@ -328,27 +339,53 @@ public class EstimatorAgentService {
             boolean structuralKeywords = false;
             String desc = description == null ? "" : description.toLowerCase();
             for (String kw : List.of(
+                    // Vehicle keywords
                     "châssis tordu", "châssis plié", "habitacle écrasé", "moteur éjecté",
                     "toit effondré", "retourné", "renversé", "complètement détruit",
                     "completely destroyed", "perte totale", "épave", "irréparable",
-                    "destruction totale", "véhicule inutilisable")) {
+                    "destruction totale", "véhicule inutilisable",
+                    // Property damage keywords
+                    "incendie", "feu", "brûlé", "brulé", "fire", "burnt", "burned",
+                    "court-circuit", "inondation", "effondrement", "salle détruite",
+                    "bâtiment détruit", "dégâts importants", "reconstruction nécessaire",
+                    "structure compromise", "murs calcinés", "plafond effondré",
+                    "électrique", "explosion", "fumée", "soot", "smoke damage")) {
                 if (desc.contains(kw)) { structuralKeywords = true; break; }
             }
 
-            // Upgrade to TOTAL_LOSS only if:
-            // - 3+ elements are TOTAL_LOSS, OR
-            // - majority (>60%) of elements are SEVERE/TOTAL_LOSS AND structural keywords present, OR
-            // - description explicitly says total loss keywords
-            if (totalLossCount >= 3) {
+            // For PROPERTY_DAMAGE: fire/flood/explosion = immediate SEVERE minimum, often TOTAL_LOSS
+            boolean isPropertyFire = "PROPERTY_DAMAGE".equals(claimType) &&
+                    (desc.contains("incendie") || desc.contains("feu") ||
+                            desc.contains("brûlé") || desc.contains("brulé") ||
+                            desc.contains("fire") || desc.contains("inondation") ||
+                            desc.contains("explosion") || desc.contains("court-circuit"));
+
+            // Fire/disaster on PROPERTY_DAMAGE → unconditional TOTAL_LOSS, ignores vision model severity
+            boolean isFireOrDisaster = "PROPERTY_DAMAGE".equals(claimType) &&
+                    (desc.contains("incendie") || desc.contains("feu") ||
+                     desc.contains("brûlé") || desc.contains("brulé") ||
+                     desc.contains("fire") || desc.contains("court-circuit") ||
+                     desc.contains("inondation") || desc.contains("explosion") ||
+                     desc.contains("dégâts importants") || desc.contains("catastrophe") ||
+                     desc.contains("sinistre important"));
+
+            if (isFireOrDisaster) {
                 current = Severity.TOTAL_LOSS;
-            } else if (structuralKeywords) {
+                log.info("[ESTIMATOR] Fire/disaster detected on PROPERTY_DAMAGE → forced TOTAL_LOSS");
+            }
+
+            // Vehicle/other: upgrade to TOTAL_LOSS if strong element evidence
+            if (!isFireOrDisaster && totalLossCount >= 3) {
                 current = Severity.TOTAL_LOSS;
-            } else if (totalElements > 0
+            } else if (!isFireOrDisaster && structuralKeywords && totalLossCount >= 1) {
+                current = Severity.TOTAL_LOSS;
+            } else if (!isFireOrDisaster && totalElements > 0
                     && (double) severeCount / totalElements > 0.6
                     && totalLossCount >= 2) {
                 current = Severity.TOTAL_LOSS;
-            } else if (current == Severity.TOTAL_LOSS && totalLossCount < 2 && !structuralKeywords) {
-                // Downgrade spurious TOTAL_LOSS — vision model overcalled it
+            } else if (current == Severity.TOTAL_LOSS && totalLossCount < 2
+                    && !structuralKeywords && !isPropertyFire && !isFireOrDisaster) {
+                // Downgrade spurious TOTAL_LOSS for vehicles only
                 if (severeCount >= 2) {
                     current = Severity.SEVERE;
                     log.info("[ESTIMATOR] Downgraded spurious TOTAL_LOSS → SEVERE " +
@@ -360,6 +397,12 @@ public class EstimatorAgentService {
             if (severeCount >= 3 && current != Severity.TOTAL_LOSS) {
                 if (current == Severity.MINOR || current == Severity.MODERATE)
                     current = Severity.SEVERE;
+            }
+
+            // Fire/flood always minimum SEVERE
+            if (isPropertyFire && (current == Severity.MINOR || current == Severity.MODERATE)) {
+                current = Severity.SEVERE;
+                log.info("[ESTIMATOR] Upgraded to SEVERE minimum: property fire claim");
             }
 
             ((com.fasterxml.jackson.databind.node.ObjectNode) root)
@@ -383,10 +426,10 @@ public class EstimatorAgentService {
         if (!"VEHICLE_DAMAGE".equals(claimType) || description == null) return null;
         Matcher m = Pattern.compile(
                 "(Ford Ranger|Ford Focus|Ford Transit|Toyota Hilux|Toyota Corolla|" +
-                "Peugeot 208|Peugeot 308|Renault Clio|Renault Duster|Renault Symbol|" +
-                "Volkswagen Golf|Hyundai Tucson|Hyundai i10|Kia Sportage|Kia Picanto|" +
-                "Fiat Punto|Fiat 500|Citroën C3|Citroën Berlingo|" +
-                "Mercedes Classe|BMW Série|Audi A|Nissan Qashqai|Mitsubishi L200)",
+                        "Peugeot 208|Peugeot 308|Renault Clio|Renault Duster|Renault Symbol|" +
+                        "Volkswagen Golf|Hyundai Tucson|Hyundai i10|Kia Sportage|Kia Picanto|" +
+                        "Fiat Punto|Fiat 500|Citroën C3|Citroën Berlingo|" +
+                        "Mercedes Classe|BMW Série|Audi A|Nissan Qashqai|Mitsubishi L200)",
                 Pattern.CASE_INSENSITIVE).matcher(description);
         return m.find() ? m.group(0).trim() : null;
     }

@@ -54,7 +54,7 @@ public class PricingResearchService {
     }
 
     public Optional<PriceRange> searchRepairCost(String element, String severity,
-                                                  String vehicleInfo, String claimType) {
+                                                 String vehicleInfo, String claimType) {
         if (serpApiKey == null || serpApiKey.isBlank()) {
             log.warn("[PRICING] No SerpAPI key");
             return Optional.empty();
@@ -66,7 +66,7 @@ public class PricingResearchService {
         for (String query : queries) {
             log.info("[PRICING] Query: '{}'", query);
             try {
-                Optional<PriceRange> r = callSerpApi(query, severity);
+                Optional<PriceRange> r = callSerpApi(query, severity, claimType);
                 if (r.isPresent()) {
                     hits.add(r.get());
                     log.info("[PRICING] Hit: {}-{} TND for '{}'", r.get().min(), r.get().max(), query);
@@ -100,7 +100,7 @@ public class PricingResearchService {
     // ── Query builder — severity-specific ────────────────────────────────────
 
     private List<String> buildQueries(String element, String severity,
-                                       String vehicleInfo, String claimType) {
+                                      String vehicleInfo, String claimType) {
         List<String> q = new ArrayList<>();
         String el = translateElement(element);
         String v  = vehicleInfo != null ? vehicleInfo : "voiture";
@@ -137,11 +137,25 @@ public class PricingResearchService {
                 }
             }
         } else if ("PROPERTY_DAMAGE".equals(claimType)) {
-            q.add(String.format("prix réparation %s Tunisie TND 2025", el));
-            q.add(String.format("coût travaux %s Tunisie dinars entreprise", el));
-            q.add(String.format("%s repair cost Tunisia TND", el));
-            q.add(String.format("prix construction rénovation %s Tunisie", el));
-            q.add(String.format("%s damage repair cost price", el));
+            if ("TOTAL_LOSS".equals(severity)) {
+                q.add("coût reconstruction bâtiment incendie Tunisie TND 2025");
+                q.add("prix reconstruction salle après incendie Tunisie dinars");
+                q.add("building fire reconstruction cost Tunisia TND");
+                q.add("coût réhabilitation bâtiment sinistre total Tunisie BTP");
+                q.add("fire damage total loss building reconstruction price");
+            } else if ("SEVERE".equals(severity)) {
+                q.add(String.format("coût reconstruction %s Tunisie TND", el));
+                q.add(String.format("prix remise en état %s après sinistre Tunisie", el));
+                q.add(String.format("%s major damage repair cost Tunisia TND", el));
+                q.add(String.format("coût réhabilitation %s Tunisie BTP", el));
+                q.add(String.format("%s fire flood damage restoration price", el));
+            } else {
+                q.add(String.format("prix réparation %s Tunisie TND 2025", el));
+                q.add(String.format("coût travaux %s Tunisie dinars", el));
+                q.add(String.format("%s repair cost Tunisia TND", el));
+                q.add(String.format("prix rénovation %s Tunisie artisan", el));
+                q.add(String.format("%s damage repair price", el));
+            }
         } else {
             q.add(String.format("coût %s sinistre Tunisie TND", el));
             q.add(String.format("%s repair replacement cost price Tunisia", el));
@@ -152,7 +166,7 @@ public class PricingResearchService {
 
     // ── SerpAPI call ──────────────────────────────────────────────────────────
 
-    private Optional<PriceRange> callSerpApi(String query, String severity) throws Exception {
+    private Optional<PriceRange> callSerpApi(String query, String severity, String claimType) throws Exception {
         String url = SERP_API_URL
                 + "?q="       + URLEncoder.encode(query, StandardCharsets.UTF_8)
                 + "&api_key=" + serpApiKey
@@ -186,7 +200,7 @@ public class PricingResearchService {
             ctx.append(title).append(" ").append(snippet).append("\n");
         }
 
-        return ctx.length() == 0 ? Optional.empty() : extractPrices(ctx.toString(), "SerpAPI", severity);
+        return ctx.length() == 0 ? Optional.empty() : extractPrices(ctx.toString(), "SerpAPI", severity, claimType);
     }
 
     private int scoreSource(String url) {
@@ -207,7 +221,7 @@ public class PricingResearchService {
 
     // ── Price extraction with currency detection ──────────────────────────────
 
-    private Optional<PriceRange> extractPrices(String text, String source, String severity) {
+    private Optional<PriceRange> extractPrices(String text, String source, String severity, String claimType) {
         if (text == null || text.isBlank()) return Optional.empty();
 
         String currency = detectCurrency(text);
@@ -217,15 +231,15 @@ public class PricingResearchService {
             case "MINOR"      ->     15L;
             case "MODERATE"   ->     80L;
             case "SEVERE"     ->    200L;
-            case "TOTAL_LOSS" ->   2000L;
+            case "TOTAL_LOSS" ->  10000L;
             default           ->     15L;
         };
         long maxBound = switch (severity) {
-            case "MINOR"      ->   3000L;
-            case "MODERATE"   ->  15000L;
-            case "SEVERE"     -> 100000L;
-            case "TOTAL_LOSS" -> 999999L;
-            default           -> 999999L;
+            case "MINOR"      ->    3000L;
+            case "MODERATE"   ->   15000L;
+            case "SEVERE"     ->  100000L;
+            case "TOTAL_LOSS" -> 9999999L;
+            default           -> 9999999L;
         };
 
         // Extract ranges: X-Y, X–Y, X à Y
