@@ -37,10 +37,10 @@ public interface ValidatorAgent {
           Sinon → couvert.
         
         EXEMPLES DE RAISONNEMENT CORRECT :
-        ✅ "pare-brise fissuré par un caillou" + contrat a "Bris de glace" → covered: true
-        ✅ "incendie de l'école" + contrat a "Incendie Bâtiment" → covered: true
-        ❌ "accident pendant excursion" + contrat exclut "excursions et compétitions" → covered: false
-        ❌ "transport de marchandises payant" + contrat dit "usage promenade et affaires uniquement" → covered: false
+         "pare-brise fissuré par un caillou" + contrat a "Bris de glace" → covered: true
+         "incendie de l'école" + contrat a "Incendie Bâtiment" → covered: true
+         "accident pendant excursion" + contrat exclut "excursions et compétitions" → covered: false
+         "transport de marchandises payant" + contrat dit "usage promenade et affaires uniquement" → covered: false
         
         RÈGLES ABSOLUES :
         - Tu te bases UNIQUEMENT sur le contrat fourni.
