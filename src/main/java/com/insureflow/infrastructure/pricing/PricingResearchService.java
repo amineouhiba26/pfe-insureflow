@@ -44,6 +44,15 @@ public class PricingResearchService {
     @Value("${serpapi.api-key:}")
     private String serpApiKey;
 
+    @Value("${pricing.bounds.minor.min:15}")          private long minorMin;
+    @Value("${pricing.bounds.minor.max:3000}")         private long minorMax;
+    @Value("${pricing.bounds.moderate.min:80}")        private long moderateMin;
+    @Value("${pricing.bounds.moderate.max:15000}")     private long moderateMax;
+    @Value("${pricing.bounds.severe.min:200}")         private long severeMin;
+    @Value("${pricing.bounds.severe.max:100000}")      private long severeMax;
+    @Value("${pricing.bounds.total-loss.min:10000}")   private long totalLossMin;
+    @Value("${pricing.bounds.total-loss.max:9999999}") private long totalLossMax;
+
     private final HttpClient   httpClient;
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -228,18 +237,18 @@ public class PricingResearchService {
         double rate     = EXCHANGE_RATES.getOrDefault(currency, 1.0);
 
         long minBound = switch (severity) {
-            case "MINOR"      ->     15L;
-            case "MODERATE"   ->     80L;
-            case "SEVERE"     ->    200L;
-            case "TOTAL_LOSS" ->  10000L;
-            default           ->     15L;
+            case "MINOR"      -> minorMin;
+            case "MODERATE"   -> moderateMin;
+            case "SEVERE"     -> severeMin;
+            case "TOTAL_LOSS" -> totalLossMin;
+            default           -> minorMin;
         };
         long maxBound = switch (severity) {
-            case "MINOR"      ->    3000L;
-            case "MODERATE"   ->   15000L;
-            case "SEVERE"     ->  100000L;
-            case "TOTAL_LOSS" -> 9999999L;
-            default           -> 9999999L;
+            case "MINOR"      -> minorMax;
+            case "MODERATE"   -> moderateMax;
+            case "SEVERE"     -> severeMax;
+            case "TOTAL_LOSS" -> totalLossMax;
+            default           -> totalLossMax;
         };
 
         // Extract ranges: X-Y, X–Y, X à Y

@@ -2,6 +2,7 @@ package com.insureflow.agent.estimator;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.insureflow.agent.shared.AgentResult;
 import com.insureflow.agent.shared.ResponseParser;
 import com.insureflow.domain.model.enums.ClaimStatus;
@@ -10,6 +11,10 @@ import com.insureflow.domain.port.out.ClaimRepository;
 import com.insureflow.infrastructure.messaging.ClaimEvent;
 import com.insureflow.infrastructure.messaging.RabbitMQConfig;
 import com.insureflow.infrastructure.pricing.PricingResearchService;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.output.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -35,6 +40,7 @@ public class EstimatorAgentService {
     private final ClaimRepository        claimRepository;
     private final ImageQualityService    imageQualityService;
     private final RabbitTemplate         rabbitTemplate;
+    private final ChatLanguageModel      chatModel;
     private final ObjectMapper           mapper = new ObjectMapper();
 
     public EstimatorAgentService(EstimatorAgent estimatorAgent,
@@ -42,13 +48,15 @@ public class EstimatorAgentService {
                                  PricingResearchService pricingResearchService,
                                  ClaimRepository claimRepository,
                                  ImageQualityService imageQualityService,
-                                 RabbitTemplate rabbitTemplate) {
+                                 RabbitTemplate rabbitTemplate,
+                                 ChatLanguageModel chatModel) {
         this.estimatorAgent         = estimatorAgent;
         this.visionAnalysisService  = visionAnalysisService;
         this.pricingResearchService = pricingResearchService;
         this.claimRepository        = claimRepository;
         this.imageQualityService    = imageQualityService;
         this.rabbitTemplate         = rabbitTemplate;
+        this.chatModel              = chatModel;
     }
 
     @RabbitListener(queues = RabbitMQConfig.Q_ESTIMATED)
@@ -182,15 +190,12 @@ public class EstimatorAgentService {
                 pricingConfidence = "low";
                 log.info("[ESTIMATOR] LLM fallback: {}-{} TND", llm.min(), llm.max());
             } else {
-                // Absolute last resort — still don't return 0, use severity minimum
-                long[] lastResort = lastResortRange(overallSeverity, claimType);
-                totalMin = BigDecimal.valueOf(lastResort[0]);
-                totalMax = BigDecimal.valueOf(lastResort[1]);
-                breakdown.add(String.format("Estimation minimale (%s): %.0f–%.0f TND [TRÈS APPROXIMATIF]",
-                        overallSeverity, totalMin, totalMax));
-                pricingMethod     = "fallback_minimal";
-                pricingConfidence = "very_low";
-                log.warn("[ESTIMATOR] Using last-resort range: {}-{} TND", totalMin, totalMax);
+                breakdown.add(String.format("Estimation impossible (%s): SerpAPI et LLM indisponibles",
+                        overallSeverity));
+                pricingMethod     = "unavailable";
+                pricingConfidence = "none";
+                log.warn("[ESTIMATOR] Pricing unavailable — SerpAPI and LLM both failed [claimType={} severity={}]",
+                        claimType, overallSeverity);
             }
         } else if (serpHits < toPrice.size()) {
             pricingMethod     = "mixed";
@@ -209,24 +214,25 @@ public class EstimatorAgentService {
 
     /**
      * LLM fallback — called ONLY when ALL SerpAPI queries failed.
-     * Forces the LLM to give a specific range, not vague prose.
+     * Calls the chat model directly (bypassing EstimatorAgent's no-price system message)
+     * with a prompt that demands a single MIN–MAX TND range and nothing else.
      */
     private PricingResearchService.PriceRange llmFallback(Severity severity, String claimType,
                                                           String vehicleInfo, String description) {
         try {
             String vehicle = vehicleInfo != null ? vehicleInfo : "véhicule standard";
-
-            // LLM returns JSON with damagedElements — ask it to estimate each part price
-            // then sum them up. We parse whatever it returns and look for numbers.
             String prompt = String.format(
-                    "Sinistre: %s, véhicule: %s, sévérité: %s.\nDescription: %s",
+                    "Tu es un expert en coûts de réparation en Tunisie.\n" +
+                    "Sinistre: %s. Véhicule: %s. Sévérité: %s.\nDescription: %s\n\n" +
+                    "Fournis UNIQUEMENT le coût total estimé en dinars tunisiens (TND) " +
+                    "sous la forme MIN–MAX (exemple: 800–2500). Aucun autre texte.",
                     claimType, vehicle, severity.name(),
                     description != null ? description : "Non fournie");
 
-            String raw = estimatorAgent.analyse(claimType, prompt, "Aucune photo").trim();
+            Response<AiMessage> resp = chatModel.generate(UserMessage.from(prompt));
+            String raw = resp.content().text().trim();
             log.info("[ESTIMATOR] LLM fallback raw response: '{}'", raw);
 
-            // Strategy 1: find explicit MIN-MAX pattern anywhere in response
             Matcher rangeMatcher = Pattern.compile("(\\d{2,7})\\s*[-–]\\s*(\\d{2,7})").matcher(raw);
             List<long[]> found = new ArrayList<>();
             while (rangeMatcher.find()) {
@@ -250,65 +256,10 @@ public class EstimatorAgentService {
                         "LLaMA 3.1 — estimation non vérifiée (non fiable)", "TND");
             }
 
-            // Strategy 2: parse JSON damagedElements and price each via severity
-            try {
-                String json = ResponseParser.extractJson(raw);
-                JsonNode root = mapper.readTree(json);
-                JsonNode elements = root.path("damagedElements");
-                if (elements.isArray() && elements.size() > 0) {
-                    long totalMin = 0, totalMax = 0;
-                    for (JsonNode el : elements) {
-                        String elSev = el.path("severity").asText("MODERATE");
-                        long[] range = lastResortRange(parseSeverity(elSev), claimType);
-                        totalMin += range[0] / 3; // per-element share of range
-                        totalMax += range[1] / 3;
-                    }
-                    if (totalMin > 0) {
-                        BigDecimal min = BigDecimal.valueOf(totalMin);
-                        BigDecimal max = BigDecimal.valueOf(totalMax);
-                        BigDecimal mid = min.add(max).divide(BigDecimal.valueOf(2), 2, RoundingMode.HALF_UP);
-                        log.info("[ESTIMATOR] LLM fallback element-based: {}-{} TND", min, max);
-                        return new PricingResearchService.PriceRange(
-                                min, max, mid, "estimation LLM éléments",
-                                "LLaMA 3.1 — estimation par éléments (non fiable)", "TND");
-                    }
-                }
-            } catch (Exception ignored) {}
-
         } catch (Exception e) {
             log.error("[ESTIMATOR] LLM fallback failed: {}", e.getMessage());
         }
         return null;
-    }
-
-    /**
-     * Absolute last resort — severity-based minimum range.
-     * Used only when both SerpAPI AND LLM fail completely.
-     * Still never returns 0.
-     */
-    private long[] lastResortRange(Severity severity, String claimType) {
-        if ("VEHICLE_DAMAGE".equals(claimType)) {
-            return switch (severity) {
-                case MINOR      -> new long[]{   80,    600};
-                case MODERATE   -> new long[]{  500,   3000};
-                case SEVERE     -> new long[]{ 2000,  12000};
-                case TOTAL_LOSS -> new long[]{30000, 120000};
-            };
-        } else if ("PROPERTY_DAMAGE".equals(claimType)) {
-            return switch (severity) {
-                case MINOR      -> new long[]{   200,   2000};
-                case MODERATE   -> new long[]{  2000,  10000};
-                case SEVERE     -> new long[]{ 10000,  50000};
-                case TOTAL_LOSS -> new long[]{50000,  500000};
-            };
-        } else {
-            return switch (severity) {
-                case MINOR      -> new long[]{  200,   2000};
-                case MODERATE   -> new long[]{ 1000,   8000};
-                case SEVERE     -> new long[]{ 5000,  30000};
-                case TOTAL_LOSS -> new long[]{30000, 300000};
-            };
-        }
     }
 
     // ── Severity post-processing ──────────────────────────────────────────────
@@ -476,22 +427,31 @@ public class EstimatorAgentService {
                                    boolean visionUsed) {
         try {
             JsonNode llm = mapper.readTree(llmJson);
-            return mapper.writeValueAsString(
-                    mapper.createObjectNode()
-                            .put("claimType",          claimType)
-                            .put("overallSeverity",    llm.path("overallSeverity").asText("MODERATE"))
-                            .put("estimatedCostMin",   costs.min().toString())
-                            .put("estimatedCostMax",   costs.max().toString())
-                            .put("estimatedCost",      costs.midpoint().toString())
-                            .put("currency",           "TND")
-                            .put("pricingMethod",      costs.pricingMethod())
-                            .put("pricingConfidence",  costs.pricingConfidence())
-                            .put("imageQualityScore",  imageQuality)
-                            .put("analysisMethod",     visionUsed ? "llama3.2-vision" : "llama3.1-textual")
-                            .put("confidence",         llm.path("confidence").asDouble(0.5))
-                            .put("reasoning",          llm.path("reasoning").asText(""))
-                            .set("costBreakdown",      mapper.valueToTree(costs.breakdown()))
-            );
+            boolean unavailable = "unavailable".equals(costs.pricingMethod());
+
+            ObjectNode node = mapper.createObjectNode()
+                    .put("claimType",         claimType)
+                    .put("overallSeverity",   llm.path("overallSeverity").asText("MODERATE"))
+                    .put("currency",          "TND")
+                    .put("pricingMethod",     costs.pricingMethod())
+                    .put("pricingConfidence", costs.pricingConfidence())
+                    .put("imageQualityScore", imageQuality)
+                    .put("analysisMethod",    visionUsed ? "llama3.2-vision" : "llama3.1-textual")
+                    .put("confidence",        llm.path("confidence").asDouble(0.5))
+                    .put("reasoning",         llm.path("reasoning").asText(""));
+
+            if (unavailable) {
+                node.putNull("estimatedCostMin");
+                node.putNull("estimatedCostMax");
+                node.putNull("estimatedCost");
+            } else {
+                node.put("estimatedCostMin", costs.min().toString());
+                node.put("estimatedCostMax", costs.max().toString());
+                node.put("estimatedCost",    costs.midpoint().toString());
+            }
+            node.set("costBreakdown", mapper.valueToTree(costs.breakdown()));
+
+            return mapper.writeValueAsString(node);
         } catch (Exception e) {
             return llmJson;
         }
