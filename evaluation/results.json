@@ -1,0 +1,1802 @@
+[
+  {
+    "test_id": "33262715-947a-4339-9bd1-0e76abbfb90d",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 4200.0,
+      "fraud_score": 0.08
+    },
+    "system_result": {
+      "claim_id": "dd53a96c-049d-4430-8869-9b33c218cddc",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 6897.72,
+      "confidence_score": 0.5720000000000001,
+      "processing_time_ms": 24152
+    },
+    "error": null
+  },
+  {
+    "test_id": "a27e15f3-bcf4-4181-8d62-851cd082b45c",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 3100.0,
+      "fraud_score": 0.09
+    },
+    "system_result": {
+      "claim_id": "0474fd67-f5d0-4789-ae9e-d4ff434c5cb8",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 900.0,
+      "confidence_score": 0.44200000000000006,
+      "processing_time_ms": 18030
+    },
+    "error": null
+  },
+  {
+    "test_id": "966ef20b-244d-4f1f-b26a-6bd0d0fa54c4",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 1800.0,
+      "fraud_score": 0.12
+    },
+    "system_result": {
+      "claim_id": "9d838154-d53c-414b-a21b-133caa6e4390",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 3923.74,
+      "confidence_score": 0.5720000000000001,
+      "processing_time_ms": 31731
+    },
+    "error": null
+  },
+  {
+    "test_id": "8f23f23a-a69e-492e-b957-47bcec19cc41",
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 2800.0,
+      "fraud_score": 0.07
+    },
+    "system_result": {
+      "claim_id": "40ce4450-7c63-419a-8fe2-9f91e82584f3",
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 1400.0,
+      "confidence_score": 0.43900000000000006,
+      "processing_time_ms": 18905
+    },
+    "error": null
+  },
+  {
+    "test_id": "8ecaf993-ae31-498a-b9b7-bcc733d43725",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 2900.0,
+      "fraud_score": 0.1
+    },
+    "system_result": {
+      "claim_id": "0097f005-bae3-4de1-bf4a-4b4860542a97",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 1129.05,
+      "confidence_score": 0.43900000000000006,
+      "processing_time_ms": 29734
+    },
+    "error": null
+  },
+  {
+    "test_id": "35c27f55-ba76-4079-808d-bab83fae428d",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 2900.0,
+      "fraud_score": 0.11
+    },
+    "system_result": {
+      "claim_id": "ab3a5e09-5f98-4ae6-8ccb-80b3de51a7ff",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 2700.0,
+      "confidence_score": 0.5070000000000001,
+      "processing_time_ms": 18633
+    },
+    "error": null
+  },
+  {
+    "test_id": "9caae753-b02f-4a77-a0d9-7f3234f2360a",
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 450.0,
+      "fraud_score": 0.05
+    },
+    "system_result": {
+      "claim_id": "3618bead-a190-44c8-8d1f-e9a0cf71c1bd",
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 315.0,
+      "confidence_score": 0.467,
+      "processing_time_ms": 17585
+    },
+    "error": null
+  },
+  {
+    "test_id": "0c3eec50-d1a6-49b8-ba8b-dec4a9a0bf2b",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 2200.0,
+      "fraud_score": 0.09
+    },
+    "system_result": {
+      "claim_id": "f9c9e463-d70a-407d-b7e1-a3f818f5b220",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 3404.52,
+      "confidence_score": 0.5670000000000001,
+      "processing_time_ms": 17997
+    },
+    "error": null
+  },
+  {
+    "test_id": "b1937107-c254-4d02-af62-e50df1f85c1a",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 8500.0,
+      "fraud_score": 0.14
+    },
+    "system_result": {
+      "claim_id": "01b54f40-1ce3-44e2-92ca-9d370beee982",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 8500.0,
+      "confidence_score": 0.5750000000000001,
+      "processing_time_ms": 16683
+    },
+    "error": null
+  },
+  {
+    "test_id": "dd7f8965-ef44-422b-bffe-86c65485e569",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 3800.0,
+      "fraud_score": 0.38
+    },
+    "system_result": {
+      "claim_id": "d657c33c-5711-4c76-9d94-93b5e0ba8b3f",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 4109.59,
+      "confidence_score": 0.562,
+      "processing_time_ms": 19397
+    },
+    "error": null
+  },
+  {
+    "test_id": "439e1911-529e-41c9-a4dc-2b8df8314c43",
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 3200.0,
+      "fraud_score": 0.09
+    },
+    "system_result": {
+      "claim_id": "96424ff8-9015-4ce3-8259-c50d0f83db8f",
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 1875.0,
+      "confidence_score": 0.47900000000000004,
+      "processing_time_ms": 19364
+    },
+    "error": null
+  },
+  {
+    "test_id": "f05d84c4-c9bd-480c-b739-a03f1a352f50",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "REJECTED",
+      "estimated_amount": 3100.0,
+      "fraud_score": 0.92
+    },
+    "system_result": {
+      "claim_id": "19501af2-cedd-4411-9679-afabe6863398",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 0.0,
+      "confidence_score": 0.398,
+      "processing_time_ms": 19867
+    },
+    "error": null
+  },
+  {
+    "test_id": "d1a3595f-1dbb-4354-9e8c-d2cd6d869384",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 3500.0,
+      "fraud_score": 0.05
+    },
+    "system_result": {
+      "claim_id": "68a4696a-73b7-4ebb-98b1-c2f6cf49270b",
+      "claim_type": "NATURAL_DISASTER",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 5400.0,
+      "confidence_score": 0.5720000000000001,
+      "processing_time_ms": 17057
+    },
+    "error": null
+  },
+  {
+    "test_id": "86f7fddc-a403-497f-82f8-9954ac70b844",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 4500.0,
+      "fraud_score": 0.78
+    },
+    "system_result": {
+      "claim_id": "881627b8-efe7-4fe8-a31c-0c69b0c26604",
+      "claim_type": "OTHER",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 0.0,
+      "confidence_score": 0.502,
+      "processing_time_ms": 27148
+    },
+    "error": null
+  },
+  {
+    "test_id": "9bc9d0c7-a44e-440e-8bc8-e747160687e8",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 3800.0,
+      "fraud_score": 0.1
+    },
+    "system_result": {
+      "claim_id": "f55de1ae-b89d-4e1d-bca4-df4fb43d12f3",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 0.0,
+      "confidence_score": 0.51,
+      "processing_time_ms": 17049
+    },
+    "error": null
+  },
+  {
+    "test_id": "acd68d06-de4b-4774-a8d2-e9807356902c",
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 8500.0,
+      "fraud_score": 0.11
+    },
+    "system_result": {
+      "claim_id": "543d15dd-b0c4-4bf7-ae2f-ea4348e7b848",
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 2400.0,
+      "confidence_score": 0.379,
+      "processing_time_ms": 19035
+    },
+    "error": null
+  },
+  {
+    "test_id": "677e694e-3576-4704-b3a7-a05f14c05152",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 2600.0,
+      "fraud_score": 0.11
+    },
+    "system_result": {
+      "claim_id": "278c1c72-9e18-4fff-948f-98a664a42b1b",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 4067.31,
+      "confidence_score": 0.5670000000000001,
+      "processing_time_ms": 32048
+    },
+    "error": null
+  },
+  {
+    "test_id": "650dbfa3-bdec-4bfd-8dec-4319a44a4b51",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 5200.0,
+      "fraud_score": 0.08
+    },
+    "system_result": {
+      "claim_id": "d020236e-d9a5-4531-8de2-32307c8c214a",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 14250.0,
+      "confidence_score": 0.5070000000000001,
+      "processing_time_ms": 17162
+    },
+    "error": null
+  },
+  {
+    "test_id": "198265a5-30ec-43ae-a141-738b134d4898",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 1400.0,
+      "fraud_score": 0.07
+    },
+    "system_result": {
+      "claim_id": "18647231-6a80-4f52-98d6-107dcaac8ae8",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 4898.3,
+      "confidence_score": 0.5670000000000001,
+      "processing_time_ms": 18411
+    },
+    "error": null
+  },
+  {
+    "test_id": "534b560e-8fb7-4e4c-b655-228defb83ef1",
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 3800.0,
+      "fraud_score": 0.06
+    },
+    "system_result": {
+      "claim_id": "4c706d41-a6c1-45a8-89a8-d487a3b97697",
+      "claim_type": "NATURAL_DISASTER",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 5900.0,
+      "confidence_score": 0.5670000000000001,
+      "processing_time_ms": 16821
+    },
+    "error": null
+  },
+  {
+    "test_id": "fd014254-82ef-4176-a52d-553c489440b9",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 2400.0,
+      "fraud_score": 0.07
+    },
+    "system_result": {
+      "claim_id": "8ff0d728-b50a-494a-96ae-9dd6090d883b",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 2500.0,
+      "confidence_score": 0.5070000000000001,
+      "processing_time_ms": 16427
+    },
+    "error": null
+  },
+  {
+    "test_id": "28c1a02a-755f-4626-92cd-1ad87008391e",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 3100.0,
+      "fraud_score": 0.13
+    },
+    "system_result": {
+      "claim_id": "a9cdcb50-4e44-4527-80ed-5c409395f087",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 218910.53,
+      "confidence_score": 0.5710000000000001,
+      "processing_time_ms": 19643
+    },
+    "error": null
+  },
+  {
+    "test_id": "a48e89a9-12e4-48c5-8ada-5211135973c4",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 4500.0,
+      "fraud_score": 0.42
+    },
+    "system_result": {
+      "claim_id": "3fba8cdf-5ab4-4450-9ba0-e24b66ac725b",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 0.0,
+      "confidence_score": 0.51,
+      "processing_time_ms": 17413
+    },
+    "error": null
+  },
+  {
+    "test_id": "51c23763-c336-4a9a-9bab-17c03dc7c8ab",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 5200.0,
+      "fraud_score": 0.91
+    },
+    "system_result": {
+      "claim_id": "4cd32190-cd21-4aee-ac90-92c0dec37486",
+      "claim_type": "OTHER",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 0.0,
+      "confidence_score": 0.40700000000000003,
+      "processing_time_ms": 20493
+    },
+    "error": null
+  },
+  {
+    "test_id": "44a6b479-1167-49f1-8218-ede011f76848",
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 1200.0,
+      "fraud_score": 0.08
+    },
+    "system_result": {
+      "claim_id": "87dd4d16-3025-48db-b2d7-02a66590fe56",
+      "claim_type": "NATURAL_DISASTER",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 850.0,
+      "confidence_score": 0.535,
+      "processing_time_ms": 17635
+    },
+    "error": null
+  },
+  {
+    "test_id": "b1c25603-c838-44ea-bf16-07f7f4c1771f",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 900.0,
+      "fraud_score": 0.06
+    },
+    "system_result": {
+      "claim_id": "429ba20a-45e1-4072-ac0c-7d555ed04b8a",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 900.0,
+      "confidence_score": 0.51,
+      "processing_time_ms": 15934
+    },
+    "error": null
+  },
+  {
+    "test_id": "ec1b13c9-4d8e-43cf-8efd-aa45ed21e998",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 9800.0,
+      "fraud_score": 0.15
+    },
+    "system_result": {
+      "claim_id": "efee0722-3033-4773-b0ba-461cf693e25e",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 325406.95,
+      "confidence_score": 0.5670000000000001,
+      "processing_time_ms": 19827
+    },
+    "error": null
+  },
+  {
+    "test_id": "9d191332-e260-4e32-a4b7-a4670acdcc47",
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 48000.0,
+      "fraud_score": 0.48
+    },
+    "system_result": {
+      "claim_id": "1560ef9a-99c6-410d-8e06-6ec1e7366507",
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 2400.0,
+      "confidence_score": 0.374,
+      "processing_time_ms": 18556
+    },
+    "error": null
+  },
+  {
+    "test_id": "babfdb5c-0f88-4fe1-ae70-354a2d06170e",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 1600.0,
+      "fraud_score": 0.06
+    },
+    "system_result": {
+      "claim_id": "c17a53b6-0ae1-47e9-acb2-75af6f78705a",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 1473.24,
+      "confidence_score": 0.5670000000000001,
+      "processing_time_ms": 35489
+    },
+    "error": null
+  },
+  {
+    "test_id": "fce245d8-3148-49d7-99b3-90255fa87434",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 4800.0,
+      "fraud_score": 0.09
+    },
+    "system_result": {
+      "claim_id": "8a0f947c-72cd-4283-803a-7932f187b060",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 4125.0,
+      "confidence_score": 0.5670000000000001,
+      "processing_time_ms": 18178
+    },
+    "error": null
+  },
+  {
+    "test_id": "5fc6ecb7-99be-4ead-9be4-ac816b319726",
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 7500.0,
+      "fraud_score": 0.1
+    },
+    "system_result": {
+      "claim_id": "4fd8f039-8d81-4ebd-848e-565af421a507",
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 18150.0,
+      "confidence_score": 0.5150000000000001,
+      "processing_time_ms": 19538
+    },
+    "error": null
+  },
+  {
+    "test_id": "95a44581-6e73-4198-ba25-9c078200f465",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 7200.0,
+      "fraud_score": 0.45
+    },
+    "system_result": {
+      "claim_id": "bdfe042a-5172-462b-96fe-1d78fd5ebaec",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 579.5,
+      "confidence_score": 0.379,
+      "processing_time_ms": 31876
+    },
+    "error": null
+  },
+  {
+    "test_id": "f90f79bc-5250-4c40-a44b-ce8541edc5ed",
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 5400.0,
+      "fraud_score": 0.55
+    },
+    "system_result": {
+      "claim_id": "ccfbe3d0-edc9-403d-bcbb-1c96efa478c3",
+      "claim_type": "OTHER",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 0.0,
+      "confidence_score": 0.512,
+      "processing_time_ms": 19535
+    },
+    "error": null
+  },
+  {
+    "test_id": "b8009723-b58d-420d-94ed-ae27287d97c2",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "REJECTED",
+      "estimated_amount": 8000.0,
+      "fraud_score": 0.87
+    },
+    "system_result": {
+      "claim_id": "78ad72ac-4752-4f1d-bfde-b3d1139affb8",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 0.0,
+      "confidence_score": 0.398,
+      "processing_time_ms": 18161
+    },
+    "error": null
+  },
+  {
+    "test_id": "7bbd5eb9-3868-4142-95f4-80f2f747edac",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 1100.0,
+      "fraud_score": 0.08
+    },
+    "system_result": {
+      "claim_id": "099723ff-55a2-4aca-963c-2691fb273876",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 980.92,
+      "confidence_score": 0.5670000000000001,
+      "processing_time_ms": 17306
+    },
+    "error": null
+  },
+  {
+    "test_id": "c38dddb7-8959-48dc-beed-d72caaf5c3f7",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 3800.0,
+      "fraud_score": 0.12
+    },
+    "system_result": {
+      "claim_id": "088a10a1-9a96-4164-bafa-6f2aabc41b71",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 3850.0,
+      "confidence_score": 0.5070000000000001,
+      "processing_time_ms": 17111
+    },
+    "error": null
+  },
+  {
+    "test_id": "1ef797e1-c2a1-4494-9a6b-c806907ae8e7",
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 4200.0,
+      "fraud_score": 0.09
+    },
+    "system_result": {
+      "claim_id": "980ec73f-590e-4689-9559-912d0a04fa18",
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 1900.0,
+      "confidence_score": 0.387,
+      "processing_time_ms": 19040
+    },
+    "error": null
+  },
+  {
+    "test_id": "2dc44768-47e0-4727-9050-cdede4f60ffe",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 3100.0,
+      "fraud_score": 0.22
+    },
+    "system_result": {
+      "claim_id": "c6d20149-d767-43a6-98c4-16f04e671bf5",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 1954.14,
+      "confidence_score": 0.41900000000000004,
+      "processing_time_ms": 21248
+    },
+    "error": null
+  },
+  {
+    "test_id": "1d5ca35d-06aa-44bc-af4b-0a5aa4274279",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 900.0,
+      "fraud_score": 0.04
+    },
+    "system_result": {
+      "claim_id": "18fc6b46-2c26-4a7d-92cf-d0083d2f92d7",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 488639.28,
+      "confidence_score": 0.5150000000000001,
+      "processing_time_ms": 17468
+    },
+    "error": null
+  },
+  {
+    "test_id": "2348716f-def2-4d4d-a8b2-b3c2c27fa58c",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 2100.0,
+      "fraud_score": 0.1
+    },
+    "system_result": {
+      "claim_id": "978dc8e0-7eb7-4bb9-89b0-e4e92644fb4f",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 4680.0,
+      "confidence_score": 0.5070000000000001,
+      "processing_time_ms": 17585
+    },
+    "error": null
+  },
+  {
+    "test_id": "4d3df57b-7a02-4634-8198-04648d3f6b11",
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 750.0,
+      "fraud_score": 0.05
+    },
+    "system_result": {
+      "claim_id": "2f045616-4bb2-4714-a5ce-8bd8340d679a",
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 315.0,
+      "confidence_score": 0.379,
+      "processing_time_ms": 17320
+    },
+    "error": null
+  },
+  {
+    "test_id": "fd092155-8c9b-4feb-8a2c-5598b20b3bc8",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 3400.0,
+      "fraud_score": 0.1
+    },
+    "system_result": {
+      "claim_id": "e37100ad-da0b-4ce2-98e7-b8b4de8b87ec",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 218910.53,
+      "confidence_score": 0.5070000000000001,
+      "processing_time_ms": 18751
+    },
+    "error": null
+  },
+  {
+    "test_id": "a0527ae0-4eb4-4f9b-b002-f16c80d7de3d",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 1800.0,
+      "fraud_score": 0.08
+    },
+    "system_result": {
+      "claim_id": "c157dd4e-c77d-4a4f-8e25-232d2e03598b",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 4750.0,
+      "confidence_score": 0.5070000000000001,
+      "processing_time_ms": 17033
+    },
+    "error": null
+  },
+  {
+    "test_id": "51e0af0e-3b23-4a5b-a81b-5e86ae3f31af",
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 5100.0,
+      "fraud_score": 0.12
+    },
+    "system_result": {
+      "claim_id": "93d4d085-634e-40fb-b25c-f743aa2db071",
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 2400.0,
+      "confidence_score": 0.43900000000000006,
+      "processing_time_ms": 19458
+    },
+    "error": null
+  },
+  {
+    "test_id": "32605ece-a112-4897-a512-a3e9e231250e",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 11500.0,
+      "fraud_score": 0.29
+    },
+    "system_result": {
+      "claim_id": "7ba76d14-869c-45d9-8c47-b93d2fc3f29e",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 276721.89,
+      "confidence_score": 0.5150000000000001,
+      "processing_time_ms": 17370
+    },
+    "error": null
+  },
+  {
+    "test_id": "7e0f85c7-3e36-4492-8d0e-c884761222b6",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 1200.0,
+      "fraud_score": 0.09
+    },
+    "system_result": {
+      "claim_id": "1de53f21-8987-474c-8eca-4956980dc0b7",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 3226.48,
+      "confidence_score": 0.5670000000000001,
+      "processing_time_ms": 19195
+    },
+    "error": null
+  },
+  {
+    "test_id": "25b762c7-fda3-475f-924d-1a983f4cefbd",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 9000.0,
+      "fraud_score": 0.48
+    },
+    "system_result": {
+      "claim_id": "bef364b6-2594-454c-adcf-b08e6ec0ec7b",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 4750.0,
+      "confidence_score": 0.41400000000000003,
+      "processing_time_ms": 18194
+    },
+    "error": null
+  },
+  {
+    "test_id": "84828cf4-439a-47c4-bcf3-6f8bc2e2c8cb",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 6800.0,
+      "fraud_score": 0.55
+    },
+    "system_result": {
+      "claim_id": "f35facbc-5117-4710-b353-64c8bd5ac745",
+      "claim_type": "OTHER",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 527.0,
+      "confidence_score": 0.384,
+      "processing_time_ms": 21712
+    },
+    "error": null
+  },
+  {
+    "test_id": "64e3fc9e-a005-4857-9dc2-a5df34d67009",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 8500.0,
+      "fraud_score": 0.17
+    },
+    "system_result": {
+      "claim_id": "03d663e5-d5c6-44da-a005-a4f657ea3d58",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 325406.95,
+      "confidence_score": 0.5670000000000001,
+      "processing_time_ms": 18661
+    },
+    "error": null
+  },
+  {
+    "test_id": "2c52cbbf-8be4-4534-94e4-90224065f047",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 2300.0,
+      "fraud_score": 0.07
+    },
+    "system_result": {
+      "claim_id": "6225cb30-765a-4ef8-89df-5c631230df0d",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 2300.0,
+      "confidence_score": 0.5150000000000001,
+      "processing_time_ms": 16630
+    },
+    "error": null
+  },
+  {
+    "test_id": "b0529c6f-6f0a-4932-a036-e245f1a04414",
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 9200.0,
+      "fraud_score": 0.08
+    },
+    "system_result": {
+      "claim_id": "8953bed9-8add-4794-8498-284944ddbf76",
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 4650.0,
+      "confidence_score": 0.47900000000000004,
+      "processing_time_ms": 19114
+    },
+    "error": null
+  },
+  {
+    "test_id": "11221b99-929b-4e04-9510-0acf99fa64fc",
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 11000.0,
+      "fraud_score": 0.39
+    },
+    "system_result": {
+      "claim_id": "1b1d56d2-5e6a-4828-bdfc-57fa1f7fcaeb",
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 15750.0,
+      "confidence_score": 0.502,
+      "processing_time_ms": 18580
+    },
+    "error": null
+  },
+  {
+    "test_id": "c7cb00fe-f09f-49b1-851d-4325f8e05558",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "REJECTED",
+      "estimated_amount": 7400.0,
+      "fraud_score": 0.68
+    },
+    "system_result": {
+      "claim_id": "cf77bf3e-58d6-462f-a1de-658dd69a0ec2",
+      "claim_type": "OTHER",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 23660.0,
+      "confidence_score": 0.52,
+      "processing_time_ms": 20519
+    },
+    "error": null
+  },
+  {
+    "test_id": "4d73472c-1bb7-4694-aca8-04f3ed0edf88",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 2100.0,
+      "fraud_score": 0.06
+    },
+    "system_result": {
+      "claim_id": "1b1d647c-6acb-43c0-b965-c9ffe11cc853",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 3049.63,
+      "confidence_score": 0.5720000000000001,
+      "processing_time_ms": 18104
+    },
+    "error": null
+  },
+  {
+    "test_id": "977e3dc8-7f26-433b-86e3-4a4b9b641b1e",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 1900.0,
+      "fraud_score": 0.09
+    },
+    "system_result": {
+      "claim_id": "15e9b9c2-1f8a-4a96-824e-2dfce5d5f6ac",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 1950.0,
+      "confidence_score": 0.5070000000000001,
+      "processing_time_ms": 16042
+    },
+    "error": null
+  },
+  {
+    "test_id": "1a9dcbb0-b4b5-4c90-88f5-6e16c972cb48",
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 1100.0,
+      "fraud_score": 0.07
+    },
+    "system_result": {
+      "claim_id": "116d08ef-2322-487e-a645-e6858532ba8a",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 66300.0,
+      "confidence_score": 0.5070000000000001,
+      "processing_time_ms": 19211
+    },
+    "error": null
+  },
+  {
+    "test_id": "8644eb47-480f-41d2-90f8-a17aab8d10b4",
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 28000.0,
+      "fraud_score": 0.94
+    },
+    "system_result": {
+      "claim_id": "0487de97-74d7-45ba-a7a6-d0255f3d48ce",
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 2400.0,
+      "confidence_score": 0.374,
+      "processing_time_ms": 18653
+    },
+    "error": null
+  },
+  {
+    "test_id": "3eff58b9-63a1-473a-b385-734817f71640",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 5200.0,
+      "fraud_score": 0.08
+    },
+    "system_result": {
+      "claim_id": "50eb4457-1a80-4c5a-a47b-b79054a0295c",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 263092.95,
+      "confidence_score": 0.5720000000000001,
+      "processing_time_ms": 17625
+    },
+    "error": null
+  },
+  {
+    "test_id": "523e7a92-3a28-49e0-9dfe-14fae493ed40",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 16200.0,
+      "fraud_score": 0.32
+    },
+    "system_result": {
+      "claim_id": "479533f5-4386-45ac-a345-a293eb889c3f",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 276721.89,
+      "confidence_score": 0.5670000000000001,
+      "processing_time_ms": 18727
+    },
+    "error": null
+  },
+  {
+    "test_id": "5965964f-32dc-4de7-a1c7-f74805e31a7e",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 3250.0,
+      "fraud_score": 0.1
+    },
+    "system_result": {
+      "claim_id": "27c7ba45-874c-426e-9995-1e1fce8397c8",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 900.0,
+      "confidence_score": 0.379,
+      "processing_time_ms": 18479
+    },
+    "error": null
+  },
+  {
+    "test_id": "7f380946-ade7-4829-88a4-78b2d2c56b91",
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 4600.0,
+      "fraud_score": 0.09
+    },
+    "system_result": {
+      "claim_id": "d128ad75-cd27-4656-8be3-be899bedb3f2",
+      "claim_type": "NATURAL_DISASTER",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 3000.0,
+      "confidence_score": 0.41900000000000004,
+      "processing_time_ms": 18475
+    },
+    "error": null
+  },
+  {
+    "test_id": "894ddaeb-2799-4972-a313-e72126839518",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 3000.0,
+      "fraud_score": 0.12
+    },
+    "system_result": {
+      "claim_id": "c12c5c54-8aa1-4a26-92a0-83015fa991a1",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 2334.74,
+      "confidence_score": 0.527,
+      "processing_time_ms": 32692
+    },
+    "error": null
+  },
+  {
+    "test_id": "83d24000-9d4f-491b-9f48-6ddcf75153c4",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 12500.0,
+      "fraud_score": 0.55
+    },
+    "system_result": {
+      "claim_id": "d5847395-5b77-44ab-8287-ea718785d200",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 0.0,
+      "confidence_score": 0.4920000000000001,
+      "processing_time_ms": 18050
+    },
+    "error": null
+  },
+  {
+    "test_id": "1aa572f3-57f6-436a-b360-df4686d42922",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 4100.0,
+      "fraud_score": 0.81
+    },
+    "system_result": {
+      "claim_id": "a16b4466-11c9-46ca-9153-9168d0633015",
+      "claim_type": "OTHER",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 0.0,
+      "confidence_score": 0.5720000000000001,
+      "processing_time_ms": 20809
+    },
+    "error": null
+  },
+  {
+    "test_id": "65623429-784d-42a6-8a5f-baa86ac3bb56",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 6500.0,
+      "fraud_score": 0.12
+    },
+    "system_result": {
+      "claim_id": "5bd0603a-3139-4ecf-b403-d72900cb3602",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 2700.0,
+      "confidence_score": 0.387,
+      "processing_time_ms": 19011
+    },
+    "error": null
+  },
+  {
+    "test_id": "812aeac3-d607-40db-86c3-93fb1358358e",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 2800.0,
+      "fraud_score": 0.1
+    },
+    "system_result": {
+      "claim_id": "1ade3bdd-760c-4883-a693-10d682a5921a",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 1296.92,
+      "confidence_score": 0.43900000000000006,
+      "processing_time_ms": 36106
+    },
+    "error": null
+  },
+  {
+    "test_id": "0b980148-d938-4397-8afc-5d36cf86cc90",
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 3100.0,
+      "fraud_score": 0.07
+    },
+    "system_result": {
+      "claim_id": "d05c2ef6-0ae1-47da-b046-10398f11db7e",
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 1400.0,
+      "confidence_score": 0.379,
+      "processing_time_ms": 18794
+    },
+    "error": null
+  },
+  {
+    "test_id": "9055770e-8bc0-4ac9-8345-c590187179b5",
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 15500.0,
+      "fraud_score": 0.43
+    },
+    "system_result": {
+      "claim_id": "1994364d-f58a-4fae-a988-441f7633e66d",
+      "claim_type": "NATURAL_DISASTER",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 20250.0,
+      "confidence_score": 0.5670000000000001,
+      "processing_time_ms": 18856
+    },
+    "error": null
+  },
+  {
+    "test_id": "2091b347-b7ad-444d-9e21-62e336421bfa",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "REJECTED",
+      "estimated_amount": 3800.0,
+      "fraud_score": 0.96
+    },
+    "system_result": {
+      "claim_id": "7731f132-6ea6-4dbc-ab35-0e730731a4c3",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 0.0,
+      "confidence_score": 0.502,
+      "processing_time_ms": 18060
+    },
+    "error": null
+  },
+  {
+    "test_id": "8515d00e-c589-4bef-8473-f26b823ddcda",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 800.0,
+      "fraud_score": 0.07
+    },
+    "system_result": {
+      "claim_id": "def52ee6-022d-4a70-b778-3db41abea261",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 488639.28,
+      "confidence_score": 0.5070000000000001,
+      "processing_time_ms": 17331
+    },
+    "error": null
+  },
+  {
+    "test_id": "d7145f1c-0573-46a7-bab4-bc79a55e0642",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 4200.0,
+      "fraud_score": 0.08
+    },
+    "system_result": {
+      "claim_id": "cf48461c-0660-48d2-93ba-0091a2654377",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 3150.0,
+      "confidence_score": 0.47100000000000003,
+      "processing_time_ms": 17033
+    },
+    "error": null
+  },
+  {
+    "test_id": "9044daab-1b67-44b5-98da-ccd7eb39253e",
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 6800.0,
+      "fraud_score": 0.1
+    },
+    "system_result": {
+      "claim_id": "69d382f4-fa72-4331-b0b5-8d65901a7ebe",
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 2400.0,
+      "confidence_score": 0.43900000000000006,
+      "processing_time_ms": 17790
+    },
+    "error": null
+  },
+  {
+    "test_id": "b4a9caba-a66f-4cab-bb75-d9539f1fc99d",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 8900.0,
+      "fraud_score": 0.93
+    },
+    "system_result": {
+      "claim_id": "da9c4793-cff3-4a9d-8dd0-62c28567b2b3",
+      "claim_type": "OTHER",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 23660.0,
+      "confidence_score": 0.512,
+      "processing_time_ms": 30021
+    },
+    "error": null
+  },
+  {
+    "test_id": "a275665c-38f3-40b8-9871-2696682f5187",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 9400.0,
+      "fraud_score": 0.41
+    },
+    "system_result": {
+      "claim_id": "515f6ad0-8407-4278-8b1a-82a85879fb91",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 276721.89,
+      "confidence_score": 0.5070000000000001,
+      "processing_time_ms": 16724
+    },
+    "error": null
+  },
+  {
+    "test_id": "0ca3d8d8-3d4b-4217-a1a2-4e1b90cdead3",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 3700.0,
+      "fraud_score": 0.09
+    },
+    "system_result": {
+      "claim_id": "b34563b8-10ab-4f1f-854b-90476d3aecf8",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 6595.58,
+      "confidence_score": 0.5720000000000001,
+      "processing_time_ms": 18469
+    },
+    "error": null
+  },
+  {
+    "test_id": "0e14a549-bca7-416f-afb1-7b36691579f9",
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 8200.0,
+      "fraud_score": 0.28
+    },
+    "system_result": {
+      "claim_id": "f7a68ede-4c78-48e4-b2b1-1fbf733cfa88",
+      "claim_type": "OTHER",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 0.0,
+      "confidence_score": 0.512,
+      "processing_time_ms": 15939
+    },
+    "error": null
+  },
+  {
+    "test_id": "aab0c737-8e32-4629-83bf-34150c04427f",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 2600.0,
+      "fraud_score": 0.06
+    },
+    "system_result": {
+      "claim_id": "84ee1aa8-0e9d-4ba0-ad23-c74fef6e8d6b",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 2500.0,
+      "confidence_score": 0.502,
+      "processing_time_ms": 16509
+    },
+    "error": null
+  },
+  {
+    "test_id": "e04099be-bf69-4886-9da4-16776177ad1d",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 3600.0,
+      "fraud_score": 0.4
+    },
+    "system_result": {
+      "claim_id": "c75e3363-bf47-4630-b74c-6100a50ad164",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 488639.28,
+      "confidence_score": 0.5070000000000001,
+      "processing_time_ms": 17238
+    },
+    "error": null
+  },
+  {
+    "test_id": "f4276d0e-24b5-46b2-b3da-cdd89a7f095d",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 3100.0,
+      "fraud_score": 0.38
+    },
+    "system_result": {
+      "claim_id": "e32cd068-03e9-4421-b681-0c65eb4a2f57",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 900.0,
+      "confidence_score": 0.374,
+      "processing_time_ms": 18493
+    },
+    "error": null
+  },
+  {
+    "test_id": "41a26951-67a7-40b4-8cc9-d4e4bb4c880a",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 700.0,
+      "fraud_score": 0.05
+    },
+    "system_result": {
+      "claim_id": "54dd6a09-a0ed-4d2f-924f-2a2802d37511",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 1669.24,
+      "confidence_score": 0.5670000000000001,
+      "processing_time_ms": 30319
+    },
+    "error": null
+  },
+  {
+    "test_id": "e734faf0-c021-4154-b3d7-c8c207dfc0d8",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 5100.0,
+      "fraud_score": 0.35
+    },
+    "system_result": {
+      "claim_id": "d8fc2c3a-4f82-47c4-a9b8-35e62c5ee994",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 243575.69,
+      "confidence_score": 0.5670000000000001,
+      "processing_time_ms": 18109
+    },
+    "error": null
+  },
+  {
+    "test_id": "cc07adaa-6b4c-4896-9615-b620a54f652a",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 5100.0,
+      "fraud_score": 0.11
+    },
+    "system_result": {
+      "claim_id": "73ffad05-688e-4f06-8cc8-b1500f3ec5c7",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 3900.0,
+      "confidence_score": 0.47100000000000003,
+      "processing_time_ms": 18418
+    },
+    "error": null
+  },
+  {
+    "test_id": "20ce75e7-8285-4856-83f1-ce32c5c2bdf4",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 2400.0,
+      "fraud_score": 0.11
+    },
+    "system_result": {
+      "claim_id": "099b81b9-beac-4ebe-a338-2a761ce30267",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 4412.34,
+      "confidence_score": 0.5720000000000001,
+      "processing_time_ms": 17933
+    },
+    "error": null
+  },
+  {
+    "test_id": "3bcc5b44-c34f-48d4-b4ed-837d3eb8f1ba",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 12800.0,
+      "fraud_score": 0.28
+    },
+    "system_result": {
+      "claim_id": "39a6a157-94c1-4e23-b8aa-1eab1343a796",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 488639.28,
+      "confidence_score": 0.5670000000000001,
+      "processing_time_ms": 18408
+    },
+    "error": null
+  },
+  {
+    "test_id": "676fade1-c9e6-4188-bb1f-3c4ac11d4905",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "REJECTED",
+      "estimated_amount": 3800.0,
+      "fraud_score": 0.89
+    },
+    "system_result": {
+      "claim_id": "f83390ea-49e3-4061-8d5b-8ed9766dab2a",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 2300.0,
+      "confidence_score": 0.404,
+      "processing_time_ms": 18796
+    },
+    "error": null
+  },
+  {
+    "test_id": "0d6008a6-9cc3-4f3e-9739-0c7ad339c1bc",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 6500.0,
+      "fraud_score": 0.1
+    },
+    "system_result": {
+      "claim_id": "cbf587c4-cf75-4243-a949-a6192ef106bc",
+      "claim_type": "NATURAL_DISASTER",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 6750.0,
+      "confidence_score": 0.502,
+      "processing_time_ms": 17078
+    },
+    "error": null
+  },
+  {
+    "test_id": "20e591bb-a874-4904-85de-dea991a79783",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 7700.0,
+      "fraud_score": 0.88
+    },
+    "system_result": {
+      "claim_id": "648d79fc-ff68-4f4d-942e-0cc528d52947",
+      "claim_type": "OTHER",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 0.0,
+      "confidence_score": 0.388,
+      "processing_time_ms": 18814
+    },
+    "error": null
+  },
+  {
+    "test_id": "e8499668-10d0-4fb6-b0e3-9cc57a51e82d",
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 18500.0,
+      "fraud_score": 0.83
+    },
+    "system_result": {
+      "claim_id": "d47a106d-28d7-45aa-bb56-a038be15186a",
+      "claim_type": "OTHER",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 85041.0,
+      "confidence_score": 0.5720000000000001,
+      "processing_time_ms": 26221
+    },
+    "error": null
+  },
+  {
+    "test_id": "e9c372da-1fa1-4d93-9b9f-b009555d36a1",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 1900.0,
+      "fraud_score": 0.08
+    },
+    "system_result": {
+      "claim_id": "2d9c654a-e046-4d0f-97b5-07a9d285327a",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 1332.58,
+      "confidence_score": 0.527,
+      "processing_time_ms": 25606
+    },
+    "error": null
+  },
+  {
+    "test_id": "7e97cff1-4dc4-486e-9c44-1be26151341b",
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 22000.0,
+      "fraud_score": 0.31
+    },
+    "system_result": {
+      "claim_id": "90199368-80db-4ea5-8ed6-dd675d8bf9d1",
+      "claim_type": "NATURAL_DISASTER",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 2250.0,
+      "confidence_score": 0.387,
+      "processing_time_ms": 17035
+    },
+    "error": null
+  },
+  {
+    "test_id": "e6e279dd-811c-45b7-bc4a-686d1300f2bc",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 4800.0,
+      "fraud_score": 0.51
+    },
+    "system_result": {
+      "claim_id": "b6d4e27c-1250-40bb-89da-df4ab0701101",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 3850.0,
+      "confidence_score": 0.462,
+      "processing_time_ms": 17601
+    },
+    "error": null
+  },
+  {
+    "test_id": "23034920-7565-4dc5-b693-16b4018319ca",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 17500.0,
+      "fraud_score": 0.52
+    },
+    "system_result": {
+      "claim_id": "0f9a3b0e-4917-42aa-b576-d3dc58912cd6",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 243575.69,
+      "confidence_score": 0.5670000000000001,
+      "processing_time_ms": 18072
+    },
+    "error": null
+  },
+  {
+    "test_id": "4dee6189-df66-42dc-a49c-903d34373e1a",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 1300.0,
+      "fraud_score": 0.06
+    },
+    "system_result": {
+      "claim_id": "a6e90410-3c9a-499f-af97-bc4b9bc3fc59",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 1166.0,
+      "confidence_score": 0.5670000000000001,
+      "processing_time_ms": 27280
+    },
+    "error": null
+  },
+  {
+    "test_id": "6701f093-21b4-48f0-84ed-84f56e804f08",
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 4100.0,
+      "fraud_score": 0.35
+    },
+    "system_result": {
+      "claim_id": "39709dd9-d051-4b9c-94d3-2aae51c0fea7",
+      "claim_type": "OTHER",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 51376.0,
+      "confidence_score": 0.52,
+      "processing_time_ms": 18546
+    },
+    "error": null
+  },
+  {
+    "test_id": "dafb22df-bf32-487b-9901-1db121f3794a",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 2700.0,
+      "fraud_score": 0.09
+    },
+    "system_result": {
+      "claim_id": "95d9695b-4378-494e-b374-da0b776e6de7",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 6348.19,
+      "confidence_score": 0.5670000000000001,
+      "processing_time_ms": 29031
+    },
+    "error": null
+  },
+  {
+    "test_id": "6abc5560-b5b2-40ba-a9c9-0b98cca2b50a",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "REJECTED",
+      "estimated_amount": 2700.0,
+      "fraud_score": 0.3
+    },
+    "system_result": {
+      "claim_id": "0c7381f3-d55e-4730-8c9d-2b48940b6a2c",
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 900.0,
+      "confidence_score": 0.379,
+      "processing_time_ms": 17518
+    },
+    "error": null
+  },
+  {
+    "test_id": "b22c8c40-f3a7-4d02-aa61-8e1f0f95963b",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 5500.0,
+      "fraud_score": 0.85
+    },
+    "system_result": {
+      "claim_id": "7fd13457-db38-4f1c-b605-764b5f496568",
+      "claim_type": "OTHER",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 0.0,
+      "confidence_score": 0.5000000000000001,
+      "processing_time_ms": 18779
+    },
+    "error": null
+  },
+  {
+    "test_id": "c5c824f8-18db-4089-badb-2993ab5aacd3",
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 2300.0,
+      "fraud_score": 0.25
+    },
+    "system_result": {
+      "claim_id": "2d249047-ed0f-4722-873c-33c40d580e79",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 1637.38,
+      "confidence_score": 0.45200000000000007,
+      "processing_time_ms": 18238
+    },
+    "error": null
+  },
+  {
+    "test_id": "1bf0bace-df96-4cc7-9303-eddd640bd474",
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 35000.0,
+      "fraud_score": 0.62
+    },
+    "system_result": {
+      "claim_id": "c8820f74-fd2f-4736-a4ec-9b4611bc3f2e",
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 2400.0,
+      "confidence_score": 0.374,
+      "processing_time_ms": 17932
+    },
+    "error": null
+  },
+  {
+    "test_id": "cfe01a1b-d9a7-47ae-8a9b-62cb81862d0a",
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 4000.0,
+      "fraud_score": 0.44
+    },
+    "system_result": {
+      "claim_id": "faea4885-3e5f-42d0-ba92-f5b9c7842ebc",
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_cost": 66300.0,
+      "confidence_score": 0.4920000000000001,
+      "processing_time_ms": 17787
+    },
+    "error": null
+  }
+]

@@ -1,0 +1,84 @@
+{
+  "generatedAt": "2026-05-17",
+  "totalEvaluated": 100,
+  "classificationAccuracy": 79.0,
+  "classificationCorrect": 79,
+  "perClassMetrics": {
+    "VEHICLE_DAMAGE": {
+      "precision": 0.9473684210526315,
+      "recall": 1.0,
+      "f1": 0.972972972972973,
+      "tp": 36,
+      "fp": 2,
+      "fn": 0
+    },
+    "THEFT": {
+      "precision": 1.0,
+      "recall": 0.9655172413793104,
+      "f1": 0.9824561403508771,
+      "tp": 28,
+      "fp": 0,
+      "fn": 1
+    },
+    "PROPERTY_DAMAGE": {
+      "precision": 1.0,
+      "recall": 0.9375,
+      "f1": 0.967741935483871,
+      "tp": 15,
+      "fp": 0,
+      "fn": 1
+    }
+  },
+  "confusionMatrix": {
+    "VEHICLE_DAMAGE": {
+      "VEHICLE_DAMAGE": 36,
+      "NATURAL_DISASTER": 2,
+      "OTHER": 7,
+      "THEFT": 0,
+      "PROPERTY_DAMAGE": 0
+    },
+    "THEFT": {
+      "THEFT": 28,
+      "OTHER": 1,
+      "VEHICLE_DAMAGE": 1,
+      "PROPERTY_DAMAGE": 0
+    },
+    "PROPERTY_DAMAGE": {
+      "PROPERTY_DAMAGE": 15,
+      "NATURAL_DISASTER": 5,
+      "OTHER": 4,
+      "VEHICLE_DAMAGE": 1,
+      "THEFT": 0
+    }
+  },
+  "estimationMAE": 57971.61,
+  "estimationMAPE": 2110.43,
+  "estimationMedianPct": 64.23,
+  "withinTenPercent": 11,
+  "withinTwentyFivePercent": 18,
+  "withinFiftyPercent": 32,
+  "decisionAccuracy": 20.0,
+  "decisionCorrect": 20,
+  "perStatusAccuracy": {
+    "APPROVED": {
+      "correct": 0,
+      "total": 60,
+      "accuracy_pct": 0.0
+    },
+    "REJECTED": {
+      "correct": 0,
+      "total": 20,
+      "accuracy_pct": 0.0
+    },
+    "PENDING_REVIEW": {
+      "correct": 20,
+      "total": 20,
+      "accuracy_pct": 100.0
+    }
+  },
+  "avgProcessingSeconds": 20.0,
+  "minProcessingSeconds": 15.9,
+  "maxProcessingSeconds": 36.1,
+  "p95ProcessingSeconds": 31.7,
+  "speedImprovementFactor": 12969
+}

@@ -37,7 +37,7 @@ public class ClaimEvent {
 
     public ClaimEvent(UUID claimId, UUID clientId, UUID policyId,
                       String description, List<String> photoUrls,
-                      Instant submittedAt , BigDecimal ClientEstimatedCost) {
+                      Instant submittedAt, BigDecimal clientEstimatedCost) {
         this.correlationId = claimId; // correlation = claim id for simplicity
         this.claimId       = claimId;
         this.clientId      = clientId;
@@ -45,7 +45,7 @@ public class ClaimEvent {
         this.description   = description;
         this.photoUrls     = photoUrls;
         this.submittedAt   = submittedAt;
-        this.clientEstimatedCost = clientEstimatedCost;
+        this.clientEstimatedCost = clientEstimatedCost; // parameter now lowercase — was self-assignment
     }
 
     public UUID getCorrelationId() { return correlationId; }

@@ -1,0 +1,1302 @@
+[
+  {
+    "id": "33262715-947a-4339-9bd1-0e76abbfb90d",
+    "description": "Honda 2020 - Collision frontale avec un autre v\u00e9hicule sur l'autoroute A1. Le pare-choc avant, le capot et le phare gauche sont endommag\u00e9s.",
+    "parts_damaged": "pare-choc avant, capot, phare gauche",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 4200.0,
+      "fraud_score": 0.08
+    }
+  },
+  {
+    "id": "a27e15f3-bcf4-4181-8d62-851cd082b45c",
+    "description": "Vol de smartphone iPhone 14 dans un caf\u00e9 \u00e0 Tunis. T\u00e9l\u00e9phone pos\u00e9 sur la table, vol\u00e9 en un instant.",
+    "parts_damaged": "smartphone iPhone 14",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 3100.0,
+      "fraud_score": 0.09
+    }
+  },
+  {
+    "id": "966ef20b-244d-4f1f-b26a-6bd0d0fa54c4",
+    "description": "Renault 2020 - Accrochage dans un parking : porti\u00e8re avant droite enfonc\u00e9e et r\u00e9troviseur cass\u00e9.",
+    "parts_damaged": "porti\u00e8re avant droite, r\u00e9troviseur",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 1800.0,
+      "fraud_score": 0.12
+    }
+  },
+  {
+    "id": "8f23f23a-a69e-492e-b957-47bcec19cc41",
+    "description": "D\u00e9g\u00e2t des eaux : fuite du voisin du dessus, plafond et murs du salon inond\u00e9s.",
+    "parts_damaged": "plafond, murs salon",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 2800.0,
+      "fraud_score": 0.07
+    }
+  },
+  {
+    "id": "8ecaf993-ae31-498a-b9b7-bcc733d43725",
+    "description": "Peugeot 2021 - Sortie de route sur route mouill\u00e9e : aile avant gauche froiss\u00e9e et pare-brise fissur\u00e9.",
+    "parts_damaged": "aile avant gauche, pare-brise",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 2900.0,
+      "fraud_score": 0.1
+    }
+  },
+  {
+    "id": "35c27f55-ba76-4079-808d-bab83fae428d",
+    "description": "Vol de sac \u00e0 main contenant portefeuille, cl\u00e9s et smartphone Samsung S23.",
+    "parts_damaged": "sac, portefeuille, smartphone Samsung",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 2900.0,
+      "fraud_score": 0.11
+    }
+  },
+  {
+    "id": "9caae753-b02f-4a77-a0d9-7f3234f2360a",
+    "description": "Bris de vitre : fen\u00eatre du s\u00e9jour cass\u00e9e par une balle perdue pendant un match.",
+    "parts_damaged": "fen\u00eatre s\u00e9jour",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 450.0,
+      "fraud_score": 0.05
+    }
+  },
+  {
+    "id": "0c3eec50-d1a6-49b8-ba8b-dec4a9a0bf2b",
+    "description": "Ford 2019 - Tamponnement par l'arri\u00e8re : pare-choc arri\u00e8re enfonc\u00e9, coffre d\u00e9form\u00e9.",
+    "parts_damaged": "pare-choc arri\u00e8re, coffre",
+    "contract_type": "TIERS_PLUS",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 2200.0,
+      "fraud_score": 0.09
+    }
+  },
+  {
+    "id": "b1937107-c254-4d02-af62-e50df1f85c1a",
+    "description": "Effraction dans le v\u00e9hicule : laptop MacBook Pro vol\u00e9 depuis le si\u00e8ge arri\u00e8re.",
+    "parts_damaged": "laptop MacBook Pro",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 8500.0,
+      "fraud_score": 0.14
+    }
+  },
+  {
+    "id": "dd7f8965-ef44-422b-bffe-86c65485e569",
+    "description": "Kia 2022 - Sinistre all\u00e9gu\u00e9 lors d'un d\u00e9placement professionnel. Pare-choc avant et capot ab\u00eem\u00e9s, aucun t\u00e9moin.",
+    "parts_damaged": "pare-choc avant, capot",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 3800.0,
+      "fraud_score": 0.38
+    }
+  },
+  {
+    "id": "439e1911-529e-41c9-a4dc-2b8df8314c43",
+    "description": "Vandalisme : fa\u00e7ade de commerce d\u00e9grad\u00e9e, vitrines bris\u00e9es, graffitis.",
+    "parts_damaged": "fa\u00e7ade, vitrines",
+    "contract_type": "MULTIRISQUE_PRO",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 3200.0,
+      "fraud_score": 0.09
+    }
+  },
+  {
+    "id": "f05d84c4-c9bd-480c-b739-a03f1a352f50",
+    "description": "Vol d\u00e9clar\u00e9 mais CCTV du voisinage montre le propri\u00e9taire avec l'objet apr\u00e8s la date d\u00e9clar\u00e9e.",
+    "parts_damaged": "smartphone",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "REJECTED",
+      "estimated_amount": 3100.0,
+      "fraud_score": 0.92
+    }
+  },
+  {
+    "id": "d1a3595f-1dbb-4354-9e8c-d2cd6d869384",
+    "description": "Renault 2020 - Gr\u00eale violente : nombreuses bosses sur le capot, le toit et la carrosserie.",
+    "parts_damaged": "capot, toit, carrosserie",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 3500.0,
+      "fraud_score": 0.05
+    }
+  },
+  {
+    "id": "86f7fddc-a403-497f-82f8-9954ac70b844",
+    "description": "Dacia 2021 - D\u00e9claration d'un sinistre datant de plus de 6 mois apr\u00e8s les faits. Dommages non document\u00e9s.",
+    "parts_damaged": "carrosserie lat\u00e9rale",
+    "contract_type": "TIERS_PLUS",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 4500.0,
+      "fraud_score": 0.78
+    }
+  },
+  {
+    "id": "9bc9d0c7-a44e-440e-8bc8-e747160687e8",
+    "description": "Vol de moto 125cc gar\u00e9e dans la rue, disparue du jour au lendemain.",
+    "parts_damaged": "moto 125cc",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 3800.0,
+      "fraud_score": 0.1
+    }
+  },
+  {
+    "id": "acd68d06-de4b-4774-a8d2-e9807356902c",
+    "description": "Incendie cuisine : appareils \u00e9lectrom\u00e9nagers et meubles d\u00e9truits. Feu ma\u00eetris\u00e9 rapidement.",
+    "parts_damaged": "cuisine, \u00e9lectrom\u00e9nager, mobilier",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 8500.0,
+      "fraud_score": 0.11
+    }
+  },
+  {
+    "id": "677e694e-3576-4704-b3a7-a05f14c05152",
+    "description": "Kia 2022 - Choc lat\u00e9ral droit en intersection : porti\u00e8re arri\u00e8re droite et aile arri\u00e8re droite ab\u00eem\u00e9es.",
+    "parts_damaged": "porti\u00e8re arri\u00e8re droite, aile arri\u00e8re droite",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 2600.0,
+      "fraud_score": 0.11
+    }
+  },
+  {
+    "id": "650dbfa3-bdec-4bfd-8dec-4319a44a4b51",
+    "description": "Cambriolage domicile : TV, ordinateur portable et bijoux vol\u00e9s.",
+    "parts_damaged": "TV, ordinateur portable, bijoux",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 5200.0,
+      "fraud_score": 0.08
+    }
+  },
+  {
+    "id": "198265a5-30ec-43ae-a141-738b134d4898",
+    "description": "Hyundai 2022 - Accrochage dans une ruelle \u00e9troite : pare-choc avant gauche ray\u00e9 et phare avant droit fissur\u00e9.",
+    "parts_damaged": "pare-choc avant, phare avant droit",
+    "contract_type": "TIERS_PLUS",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 1400.0,
+      "fraud_score": 0.07
+    }
+  },
+  {
+    "id": "534b560e-8fb7-4e4c-b655-228defb83ef1",
+    "description": "Gr\u00eale : toiture de villa partiellement endommag\u00e9e, goutti\u00e8res arrach\u00e9es.",
+    "parts_damaged": "toiture, goutti\u00e8res",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 3800.0,
+      "fraud_score": 0.06
+    }
+  },
+  {
+    "id": "fd014254-82ef-4176-a52d-553c489440b9",
+    "description": "Vol de v\u00e9lo \u00e9lectrique depuis le couloir de l'immeuble.",
+    "parts_damaged": "v\u00e9lo \u00e9lectrique",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 2400.0,
+      "fraud_score": 0.07
+    }
+  },
+  {
+    "id": "28c1a02a-755f-4626-92cd-1ad87008391e",
+    "description": "Dacia 2021 - Collision avec un poteau : aile avant droite d\u00e9form\u00e9e, phare droit bris\u00e9 et capot pli\u00e9.",
+    "parts_damaged": "aile avant droite, phare droit, capot",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 3100.0,
+      "fraud_score": 0.13
+    }
+  },
+  {
+    "id": "a48e89a9-12e4-48c5-8ada-5211135973c4",
+    "description": "Vol de bijoux d\u00e9clar\u00e9 tardivement. Aucune preuve de propri\u00e9t\u00e9 fournie.",
+    "parts_damaged": "bijoux",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 4500.0,
+      "fraud_score": 0.42
+    }
+  },
+  {
+    "id": "51c23763-c336-4a9a-9bab-17c03dc7c8ab",
+    "description": "Ford 2019 - Photos fournies ne correspondent pas au v\u00e9hicule assur\u00e9. VIN diff\u00e9rent.",
+    "parts_damaged": "pare-choc, capot",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 5200.0,
+      "fraud_score": 0.91
+    }
+  },
+  {
+    "id": "44a6b479-1167-49f1-8218-ede011f76848",
+    "description": "Temp\u00eate : arbre tomb\u00e9 sur cl\u00f4ture et voiture gar\u00e9e dans le jardin.",
+    "parts_damaged": "cl\u00f4ture, jardin",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 1200.0,
+      "fraud_score": 0.08
+    }
+  },
+  {
+    "id": "b1c25603-c838-44ea-bf16-07f7f4c1771f",
+    "description": "Smartphone Xiaomi Redmi Note 12 vol\u00e9 dans le bus.",
+    "parts_damaged": "smartphone Xiaomi Redmi Note 12",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 900.0,
+      "fraud_score": 0.06
+    }
+  },
+  {
+    "id": "ec1b13c9-4d8e-43cf-8efd-aa45ed21e998",
+    "description": "Hyundai 2022 - V\u00e9hicule renvers\u00e9 sur une chauss\u00e9e verglac\u00e9e. Toit enfonc\u00e9, plusieurs vitres bris\u00e9es, porti\u00e8res bloqu\u00e9es.",
+    "parts_damaged": "toit, vitres, porti\u00e8res",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 9800.0,
+      "fraud_score": 0.15
+    }
+  },
+  {
+    "id": "9d191332-e260-4e32-a4b7-a4670acdcc47",
+    "description": "Incendie all\u00e9gu\u00e9 d'entrep\u00f4t : montant tr\u00e8s \u00e9lev\u00e9, cause ind\u00e9termin\u00e9e.",
+    "parts_damaged": "entrep\u00f4t complet, stock, \u00e9quipements",
+    "contract_type": "MULTIRISQUE_PRO",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 48000.0,
+      "fraud_score": 0.48
+    }
+  },
+  {
+    "id": "babfdb5c-0f88-4fe1-ae70-354a2d06170e",
+    "description": "Hyundai 2022 - Choc frontal mod\u00e9r\u00e9 au feu rouge : pare-choc avant et calandre endommag\u00e9s.",
+    "parts_damaged": "pare-choc avant, calandre",
+    "contract_type": "TIERS_PLUS",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 1600.0,
+      "fraud_score": 0.06
+    }
+  },
+  {
+    "id": "fce245d8-3148-49d7-99b3-90255fa87434",
+    "description": "Cambriolage avec effraction : r\u00e9frig\u00e9rateur, machine \u00e0 laver et TV emport\u00e9s.",
+    "parts_damaged": "r\u00e9frig\u00e9rateur, machine \u00e0 laver, TV",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 4800.0,
+      "fraud_score": 0.09
+    }
+  },
+  {
+    "id": "5fc6ecb7-99be-4ead-9be4-ac816b319726",
+    "description": "D\u00e9g\u00e2t des eaux complet : infiltration toiture, appartement entier touch\u00e9.",
+    "parts_damaged": "appartement complet",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 7500.0,
+      "fraud_score": 0.1
+    }
+  },
+  {
+    "id": "95a44581-6e73-4198-ba25-9c078200f465",
+    "description": "Peugeot 2021 - V\u00e9hicule endommag\u00e9 sur parking priv\u00e9. Plusieurs \u00e9l\u00e9ments touch\u00e9s, devis \u00e9lev\u00e9.",
+    "parts_damaged": "porti\u00e8res, capot, aile",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 7200.0,
+      "fraud_score": 0.45
+    }
+  },
+  {
+    "id": "f90f79bc-5250-4c40-a44b-ce8541edc5ed",
+    "description": "Dommages existants avant la souscription du contrat, non d\u00e9clar\u00e9s.",
+    "parts_damaged": "murs, plafond salon",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 5400.0,
+      "fraud_score": 0.55
+    }
+  },
+  {
+    "id": "b8009723-b58d-420d-94ed-ae27287d97c2",
+    "description": "Vol de bijoux : l'\u00e9valuation ind\u00e9pendante r\u00e9v\u00e8le des objets de tr\u00e8s faible valeur gonfl\u00e9e.",
+    "parts_damaged": "bijoux",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "REJECTED",
+      "estimated_amount": 8000.0,
+      "fraud_score": 0.87
+    }
+  },
+  {
+    "id": "7bbd5eb9-3868-4142-95f4-80f2f747edac",
+    "description": "Peugeot 2021 - Aile arri\u00e8re gauche enfonc\u00e9e dans un parking souterrain par un autre conducteur.",
+    "parts_damaged": "aile arri\u00e8re gauche",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 1100.0,
+      "fraud_score": 0.08
+    }
+  },
+  {
+    "id": "c38dddb7-8959-48dc-beed-d72caaf5c3f7",
+    "description": "Vol de PC gaming (ASUS ROG) dans le bureau pendant une conf\u00e9rence.",
+    "parts_damaged": "PC gaming ASUS ROG",
+    "contract_type": "MULTIRISQUE_PRO",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 3800.0,
+      "fraud_score": 0.12
+    }
+  },
+  {
+    "id": "1ef797e1-c2a1-4494-9a6b-c806907ae8e7",
+    "description": "Effondrement partiel d'un mur de sout\u00e8nement suite aux pluies.",
+    "parts_damaged": "mur de sout\u00e8nement",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 4200.0,
+      "fraud_score": 0.09
+    }
+  },
+  {
+    "id": "2dc44768-47e0-4727-9050-cdede4f60ffe",
+    "description": "Toyota 2021 - V\u00e9hicule assur\u00e9 en tiers simple, demande de remboursement pour dommages propres non couverts.",
+    "parts_damaged": "capot, aile avant droite",
+    "contract_type": "TIERS_SIMPLE",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 3100.0,
+      "fraud_score": 0.22
+    }
+  },
+  {
+    "id": "1d5ca35d-06aa-44bc-af4b-0a5aa4274279",
+    "description": "Toyota 2021 - Pare-brise fissur\u00e9 de part en part suite \u00e0 un caillou projet\u00e9 sur l'autoroute.",
+    "parts_damaged": "pare-brise",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 900.0,
+      "fraud_score": 0.04
+    }
+  },
+  {
+    "id": "2348716f-def2-4d4d-a8b2-b3c2c27fa58c",
+    "description": "Effraction dans voiture : sac \u00e0 dos, iPad et contenu du vide-poche.",
+    "parts_damaged": "sac \u00e0 dos, iPad",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 2100.0,
+      "fraud_score": 0.1
+    }
+  },
+  {
+    "id": "4d3df57b-7a02-4634-8198-04648d3f6b11",
+    "description": "Bris de porte vitr\u00e9e double vitrage (entr\u00e9e principale du commerce).",
+    "parts_damaged": "porte vitr\u00e9e entr\u00e9e",
+    "contract_type": "MULTIRISQUE_PRO",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 750.0,
+      "fraud_score": 0.05
+    }
+  },
+  {
+    "id": "fd092155-8c9b-4feb-8a2c-5598b20b3bc8",
+    "description": "Dacia 2021 - Collision arri\u00e8re sur autoroute : pare-choc arri\u00e8re, hayon et feux arri\u00e8re d\u00e9truits.",
+    "parts_damaged": "pare-choc arri\u00e8re, hayon, feux arri\u00e8re",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 3400.0,
+      "fraud_score": 0.1
+    }
+  },
+  {
+    "id": "a0527ae0-4eb4-4f9b-b002-f16c80d7de3d",
+    "description": "Vol de montre de luxe (Seiko Prospex) dans un vestiaire de salle de sport.",
+    "parts_damaged": "montre de luxe Seiko",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 1800.0,
+      "fraud_score": 0.08
+    }
+  },
+  {
+    "id": "51e0af0e-3b23-4a5b-a81b-5e86ae3f31af",
+    "description": "Incendie d\u00e9pendance : garage br\u00fbl\u00e9 partiellement, voiture l\u00e9g\u00e8rement touch\u00e9e.",
+    "parts_damaged": "garage, carrosserie v\u00e9hicule",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 5100.0,
+      "fraud_score": 0.12
+    }
+  },
+  {
+    "id": "32605ece-a112-4897-a512-a3e9e231250e",
+    "description": "Volkswagen 2019 - Accrochage \u00e0 grande vitesse sur autoroute A3, dommages \u00e9tendus sur le flanc droit.",
+    "parts_damaged": "flanc droit, toit, porti\u00e8res droites",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 11500.0,
+      "fraud_score": 0.29
+    }
+  },
+  {
+    "id": "7e0f85c7-3e36-4492-8d0e-c884761222b6",
+    "description": "Dacia 2021 - Accrochage l\u00e9ger c\u00f4t\u00e9 conducteur : porti\u00e8re avant gauche ray\u00e9e et r\u00e9troviseur pli\u00e9.",
+    "parts_damaged": "porti\u00e8re avant gauche, r\u00e9troviseur",
+    "contract_type": "TIERS_PLUS",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 1200.0,
+      "fraud_score": 0.09
+    }
+  },
+  {
+    "id": "25b762c7-fda3-475f-924d-1a983f4cefbd",
+    "description": "Vol de moto 250cc. Pas de plainte d\u00e9pos\u00e9e. Valeur d\u00e9clar\u00e9e sup\u00e9rieure au march\u00e9.",
+    "parts_damaged": "moto 250cc",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 9000.0,
+      "fraud_score": 0.48
+    }
+  },
+  {
+    "id": "84828cf4-439a-47c4-bcf3-6f8bc2e2c8cb",
+    "description": "Ford 2019 - Sinistre survenu hors de la p\u00e9riode de validit\u00e9 du contrat d'assurance.",
+    "parts_damaged": "toit, porti\u00e8res",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 6800.0,
+      "fraud_score": 0.55
+    }
+  },
+  {
+    "id": "64e3fc9e-a005-4857-9dc2-a5df34d67009",
+    "description": "Hyundai 2022 - Choc frontal violent contre un muret : pare-choc avant, phares, capot et moteur endommag\u00e9s.",
+    "parts_damaged": "pare-choc avant, phares, capot, moteur",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 8500.0,
+      "fraud_score": 0.17
+    }
+  },
+  {
+    "id": "2c52cbbf-8be4-4534-94e4-90224065f047",
+    "description": "Moto 50cc vol\u00e9e en plein jour devant le domicile.",
+    "parts_damaged": "moto 50cc",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 2300.0,
+      "fraud_score": 0.07
+    }
+  },
+  {
+    "id": "b0529c6f-6f0a-4932-a036-e245f1a04414",
+    "description": "Inondation locale commerciale suite \u00e0 rupture de canalisation externe.",
+    "parts_damaged": "local commercial, stock",
+    "contract_type": "MULTIRISQUE_PRO",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 9200.0,
+      "fraud_score": 0.08
+    }
+  },
+  {
+    "id": "11221b99-929b-4e04-9510-0acf99fa64fc",
+    "description": "D\u00e9g\u00e2t des eaux sur appartement complet. Relation propri\u00e9taire/locataire floue.",
+    "parts_damaged": "appartement complet",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 11000.0,
+      "fraud_score": 0.39
+    }
+  },
+  {
+    "id": "c7cb00fe-f09f-49b1-851d-4325f8e05558",
+    "description": "Contrat souscrit 3 jours avant la d\u00e9claration de vol. D\u00e9lai de carence non respect\u00e9.",
+    "parts_damaged": "laptop, smartphone",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "REJECTED",
+      "estimated_amount": 7400.0,
+      "fraud_score": 0.68
+    }
+  },
+  {
+    "id": "4d73472c-1bb7-4694-aca8-04f3ed0edf88",
+    "description": "Nissan 2020 - Gr\u00eale sur capot et ailes : multiples impacts, peinture ab\u00eem\u00e9e.",
+    "parts_damaged": "capot, ailes",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 2100.0,
+      "fraud_score": 0.06
+    }
+  },
+  {
+    "id": "977e3dc8-7f26-433b-86e3-4a4b9b641b1e",
+    "description": "Vol d'un PC bureau (Core i5 16 Go) lors d'un d\u00e9m\u00e9nagement.",
+    "parts_damaged": "PC bureau Core i5",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 1900.0,
+      "fraud_score": 0.09
+    }
+  },
+  {
+    "id": "1a9dcbb0-b4b5-4c90-88f5-6e16c972cb48",
+    "description": "Vandalisme v\u00e9hicule stationn\u00e9 : carrosserie ray\u00e9e, r\u00e9troviseurs bris\u00e9s.",
+    "parts_damaged": "carrosserie v\u00e9hicule, r\u00e9troviseurs",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 1100.0,
+      "fraud_score": 0.07
+    }
+  },
+  {
+    "id": "8644eb47-480f-41d2-90f8-a17aab8d10b4",
+    "description": "Incendie d\u00e9clar\u00e9 mais rapport des pompiers indique cause volontaire.",
+    "parts_damaged": "habitation, garage",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 28000.0,
+      "fraud_score": 0.94
+    }
+  },
+  {
+    "id": "3eff58b9-63a1-473a-b385-734817f71640",
+    "description": "Renault 2020 - V\u00e9hicule touch\u00e9 par un arbre tomb\u00e9 pendant une temp\u00eate : toit enfonc\u00e9, pare-brise bris\u00e9.",
+    "parts_damaged": "toit, pare-brise",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 5200.0,
+      "fraud_score": 0.08
+    }
+  },
+  {
+    "id": "523e7a92-3a28-49e0-9dfe-14fae493ed40",
+    "description": "Volkswagen 2019 - Choc frontal avec un bus : pare-choc avant, capot, phares, moteur suspects.",
+    "parts_damaged": "pare-choc avant, capot, moteur",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 16200.0,
+      "fraud_score": 0.32
+    }
+  },
+  {
+    "id": "5965964f-32dc-4de7-a1c7-f74805e31a7e",
+    "description": "Smartphone Samsung Galaxy S24 arrach\u00e9 dans la rue par un voleur \u00e0 la tire.",
+    "parts_damaged": "smartphone Samsung Galaxy S24",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 3250.0,
+      "fraud_score": 0.1
+    }
+  },
+  {
+    "id": "7f380946-ade7-4829-88a4-78b2d2c56b91",
+    "description": "Gr\u00eale intensive : multiples bris de tuiles, velux cass\u00e9, infiltrations.",
+    "parts_damaged": "tuiles, velux, plafond",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 4600.0,
+      "fraud_score": 0.09
+    }
+  },
+  {
+    "id": "894ddaeb-2799-4972-a313-e72126839518",
+    "description": "Volkswagen 2019 - Sortie de route dans un virage : pare-choc avant, aile gauche et jante endommag\u00e9s.",
+    "parts_damaged": "pare-choc avant, aile gauche, jante",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 3000.0,
+      "fraud_score": 0.12
+    }
+  },
+  {
+    "id": "83d24000-9d4f-491b-9f48-6ddcf75153c4",
+    "description": "Cambriolage all\u00e9gu\u00e9 sans traces d'effraction. Montant tr\u00e8s \u00e9lev\u00e9.",
+    "parts_damaged": "TV, ordinateur, bijoux, appareils photo",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 12500.0,
+      "fraud_score": 0.55
+    }
+  },
+  {
+    "id": "1aa572f3-57f6-436a-b360-df4686d42922",
+    "description": "Honda 2020 - Incoh\u00e9rence entre la description du sinistre et les dommages constat\u00e9s par l'expert.",
+    "parts_damaged": "flanc gauche, aile",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 4100.0,
+      "fraud_score": 0.81
+    }
+  },
+  {
+    "id": "65623429-784d-42a6-8a5f-baa86ac3bb56",
+    "description": "Cambriolage d'appartement : bijoux en or, argent liquide et smartphone vol\u00e9s.",
+    "parts_damaged": "bijoux en or, esp\u00e8ces, smartphone",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 6500.0,
+      "fraud_score": 0.12
+    }
+  },
+  {
+    "id": "812aeac3-d607-40db-86c3-93fb1358358e",
+    "description": "Volkswagen 2019 - Tamponnement au carrefour : dommages sur le c\u00f4t\u00e9 droit du v\u00e9hicule, porti\u00e8res droites et aile.",
+    "parts_damaged": "porti\u00e8res droites, aile droite",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 2800.0,
+      "fraud_score": 0.1
+    }
+  },
+  {
+    "id": "0b980148-d938-4397-8afc-5d36cf86cc90",
+    "description": "Fuite importante : d\u00e9g\u00e2t des eaux murs et sol chambre principale.",
+    "parts_damaged": "murs chambre, sol parquet",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 3100.0,
+      "fraud_score": 0.07
+    }
+  },
+  {
+    "id": "9055770e-8bc0-4ac9-8345-c590187179b5",
+    "description": "Inondation suite \u00e0 temp\u00eate. Montant r\u00e9clam\u00e9 inclut \u00e9quipements anciens \u00e0 neuf.",
+    "parts_damaged": "habitation, mobilier, \u00e9quipements",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 15500.0,
+      "fraud_score": 0.43
+    }
+  },
+  {
+    "id": "2091b347-b7ad-444d-9e21-62e336421bfa",
+    "description": "Objet d\u00e9clar\u00e9 vol\u00e9 retrouv\u00e9 en vente sur Tayara.tn au nom de l'assur\u00e9.",
+    "parts_damaged": "PC gaming",
+    "contract_type": "MULTIRISQUE_PRO",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "REJECTED",
+      "estimated_amount": 3800.0,
+      "fraud_score": 0.96
+    }
+  },
+  {
+    "id": "8515d00e-c589-4bef-8473-f26b823ddcda",
+    "description": "Toyota 2021 - Voiture ray\u00e9e sur tout le c\u00f4t\u00e9 gauche dans une rue commer\u00e7ante.",
+    "parts_damaged": "flanc gauche",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 800.0,
+      "fraud_score": 0.07
+    }
+  },
+  {
+    "id": "d7145f1c-0573-46a7-bab4-bc79a55e0642",
+    "description": "Vol de iPhone 15 Pro sur une table de restaurant.",
+    "parts_damaged": "smartphone iPhone 15 Pro",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 4200.0,
+      "fraud_score": 0.08
+    }
+  },
+  {
+    "id": "9044daab-1b67-44b5-98da-ccd7eb39253e",
+    "description": "Incendie partiel salon : court-circuit \u00e9lectrique, mobilier et murs endommag\u00e9s.",
+    "parts_damaged": "salon, mobilier, murs",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 6800.0,
+      "fraud_score": 0.1
+    }
+  },
+  {
+    "id": "b4a9caba-a66f-4cab-bb75-d9539f1fc99d",
+    "description": "Honda 2020 - Tentative de gonflement du montant via double facturation de pi\u00e8ces d\u00e9tach\u00e9es.",
+    "parts_damaged": "pare-choc arri\u00e8re, feux, jantes",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 8900.0,
+      "fraud_score": 0.93
+    }
+  },
+  {
+    "id": "a275665c-38f3-40b8-9871-2696682f5187",
+    "description": "Volkswagen 2019 - Multi-impact suite \u00e0 un carambolage sur A1 : carrosserie lat\u00e9rale gauche tr\u00e8s endommag\u00e9e.",
+    "parts_damaged": "flanc gauche, ailes, porti\u00e8res",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 9400.0,
+      "fraud_score": 0.41
+    }
+  },
+  {
+    "id": "0ca3d8d8-3d4b-4217-a1a2-4e1b90cdead3",
+    "description": "Renault 2020 - Choc frontal sur un camion en marche arri\u00e8re : capot, pare-choc avant et phares cass\u00e9s.",
+    "parts_damaged": "capot, pare-choc avant, phares",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 3700.0,
+      "fraud_score": 0.09
+    }
+  },
+  {
+    "id": "0e14a549-bca7-416f-afb1-7b36691579f9",
+    "description": "Contrat habitation ne couvre pas les dommages aux d\u00e9pendances s\u00e9par\u00e9es.",
+    "parts_damaged": "d\u00e9pendance, grange",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 8200.0,
+      "fraud_score": 0.28
+    }
+  },
+  {
+    "id": "aab0c737-8e32-4629-83bf-34150c04427f",
+    "description": "V\u00e9lo \u00e9lectrique vol\u00e9 depuis le garage de l'immeuble r\u00e9sidentiel.",
+    "parts_damaged": "v\u00e9lo \u00e9lectrique",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 2600.0,
+      "fraud_score": 0.06
+    }
+  },
+  {
+    "id": "e04099be-bf69-4886-9da4-16776177ad1d",
+    "description": "Toyota 2021 - Conducteur non d\u00e9sign\u00e9 au contrat lors du sinistre.",
+    "parts_damaged": "pare-choc avant, capot",
+    "contract_type": "TIERS_PLUS",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 3600.0,
+      "fraud_score": 0.4
+    }
+  },
+  {
+    "id": "f4276d0e-24b5-46b2-b3da-cdd89a7f095d",
+    "description": "Vol de smartphone d\u00e9clar\u00e9 deux semaines apr\u00e8s l'incident.",
+    "parts_damaged": "smartphone iPhone 14",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 3100.0,
+      "fraud_score": 0.38
+    }
+  },
+  {
+    "id": "41a26951-67a7-40b4-8cc9-d4e4bb4c880a",
+    "description": "Hyundai 2022 - Collision l\u00e9g\u00e8re dans une sortie de garage : pare-choc avant ray\u00e9 et l\u00e9g\u00e8rement enfonc\u00e9.",
+    "parts_damaged": "pare-choc avant",
+    "contract_type": "TIERS_PLUS",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 700.0,
+      "fraud_score": 0.05
+    }
+  },
+  {
+    "id": "e734faf0-c021-4154-b3d7-c8c207dfc0d8",
+    "description": "Ford 2019 - V\u00e9hicule retrouv\u00e9 vandalis\u00e9 apr\u00e8s une nuit dans la rue. \u00c9tat g\u00e9n\u00e9ral d\u00e9grad\u00e9.",
+    "parts_damaged": "carrosserie, vitres, int\u00e9rieur",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 5100.0,
+      "fraud_score": 0.35
+    }
+  },
+  {
+    "id": "cc07adaa-6b4c-4896-9615-b620a54f652a",
+    "description": "Vol de mat\u00e9riel informatique professionnel (laptop + disque dur externe) depuis le bureau.",
+    "parts_damaged": "laptop professionnel, disque dur externe",
+    "contract_type": "MULTIRISQUE_PRO",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "APPROVED",
+      "estimated_amount": 5100.0,
+      "fraud_score": 0.11
+    }
+  },
+  {
+    "id": "20ce75e7-8285-4856-83f1-ce32c5c2bdf4",
+    "description": "Renault 2020 - Accrochage sur voie rapide : aile avant droite et porti\u00e8re avant droite enfonc\u00e9es.",
+    "parts_damaged": "aile avant droite, porti\u00e8re avant droite",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 2400.0,
+      "fraud_score": 0.11
+    }
+  },
+  {
+    "id": "3bcc5b44-c34f-48d4-b4ed-837d3eb8f1ba",
+    "description": "Toyota 2021 - Collision frontale multi-\u00e9l\u00e9ments : capot, pare-choc, phares, calandre, radiateur.",
+    "parts_damaged": "capot, pare-choc, phares, radiateur",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 12800.0,
+      "fraud_score": 0.28
+    }
+  },
+  {
+    "id": "676fade1-c9e6-4188-bb1f-3c4ac11d4905",
+    "description": "Vol de moto d\u00e9clar\u00e9 mais enregistrement de transfert de propri\u00e9t\u00e9 trouv\u00e9 2 jours avant.",
+    "parts_damaged": "moto 125cc",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "REJECTED",
+      "estimated_amount": 3800.0,
+      "fraud_score": 0.89
+    }
+  },
+  {
+    "id": "0d6008a6-9cc3-4f3e-9739-0c7ad339c1bc",
+    "description": "Dacia 2021 - Inondation du moteur suite aux pluies torrentielles de Nabeul.",
+    "parts_damaged": "moteur, habitacle",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 6500.0,
+      "fraud_score": 0.1
+    }
+  },
+  {
+    "id": "20e591bb-a874-4904-85de-dea991a79783",
+    "description": "Ford 2019 - Montant r\u00e9clam\u00e9 trois fois sup\u00e9rieur au devis ind\u00e9pendant. Suspicion de surfacturation.",
+    "parts_damaged": "carrosserie, vitres, int\u00e9rieur",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 7700.0,
+      "fraud_score": 0.88
+    }
+  },
+  {
+    "id": "e8499668-10d0-4fb6-b0e3-9cc57a51e82d",
+    "description": "Double d\u00e9claration du m\u00eame sinistre sous deux contrats diff\u00e9rents.",
+    "parts_damaged": "commerce, \u00e9quipements",
+    "contract_type": "MULTIRISQUE_PRO",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 18500.0,
+      "fraud_score": 0.83
+    }
+  },
+  {
+    "id": "e9c372da-1fa1-4d93-9b9f-b009555d36a1",
+    "description": "Kia 2022 - Choc arri\u00e8re \u00e0 l'arr\u00eat : pare-choc arri\u00e8re et malle enfonc\u00e9s.",
+    "parts_damaged": "pare-choc arri\u00e8re, malle",
+    "contract_type": "TIERS_PLUS",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 1900.0,
+      "fraud_score": 0.08
+    }
+  },
+  {
+    "id": "7e97cff1-4dc4-486e-9c44-1be26151341b",
+    "description": "S\u00e9isme : fissures importantes. Expertise structurelle n\u00e9cessaire.",
+    "parts_damaged": "structure b\u00e2timent, murs porteurs",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 22000.0,
+      "fraud_score": 0.31
+    }
+  },
+  {
+    "id": "e6e279dd-811c-45b7-bc4a-686d1300f2bc",
+    "description": "Vol de PC gaming avec facture d'achat incoh\u00e9rente avec le mod\u00e8le d\u00e9clar\u00e9.",
+    "parts_damaged": "PC gaming",
+    "contract_type": "MULTIRISQUE_PRO",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 4800.0,
+      "fraud_score": 0.51
+    }
+  },
+  {
+    "id": "23034920-7565-4dc5-b693-16b4018319ca",
+    "description": "Ford 2019 - Sortie de route \u00e0 grande vitesse. Multiples dommages structurels, expertise n\u00e9cessaire.",
+    "parts_damaged": "ch\u00e2ssis, toit, moteur, porti\u00e8res",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 17500.0,
+      "fraud_score": 0.52
+    }
+  },
+  {
+    "id": "4dee6189-df66-42dc-a49c-903d34373e1a",
+    "description": "Ford 2019 - Rayures profondes sur tout le c\u00f4t\u00e9 droit suite \u00e0 un accrochage dans une ruelle.",
+    "parts_damaged": "flanc droit, porti\u00e8re droite",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 1300.0,
+      "fraud_score": 0.06
+    }
+  },
+  {
+    "id": "6701f093-21b4-48f0-84ed-84f56e804f08",
+    "description": "Travaux de r\u00e9novation mal ex\u00e9cut\u00e9s : non-couverture hors sinistre accidentel.",
+    "parts_damaged": "carrelage, canalisations",
+    "contract_type": "MULTIRISQUE_HAB",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 4100.0,
+      "fraud_score": 0.35
+    }
+  },
+  {
+    "id": "dafb22df-bf32-487b-9901-1db121f3794a",
+    "description": "Volkswagen 2019 - Accident de nuit : collision frontale avec un animal, capot et radiateur endommag\u00e9s.",
+    "parts_damaged": "capot, radiateur, pare-choc avant",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "APPROVED",
+      "estimated_amount": 2700.0,
+      "fraud_score": 0.09
+    }
+  },
+  {
+    "id": "6abc5560-b5b2-40ba-a9c9-0b98cca2b50a",
+    "description": "Smartphone vol\u00e9 : mod\u00e8le non couvert par l'extension vol du contrat souscrit.",
+    "parts_damaged": "smartphone Samsung S23",
+    "contract_type": "TIERS_PLUS",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "REJECTED",
+      "estimated_amount": 2700.0,
+      "fraud_score": 0.3
+    }
+  },
+  {
+    "id": "b22c8c40-f3a7-4d02-aa61-8e1f0f95963b",
+    "description": "Volkswagen 2019 - V\u00e9hicule d\u00e9j\u00e0 d\u00e9clar\u00e9 sinistr\u00e9 pour les m\u00eames dommages aupr\u00e8s d'une autre compagnie.",
+    "parts_damaged": "capot, ailes, pare-choc avant",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "REJECTED",
+      "estimated_amount": 5500.0,
+      "fraud_score": 0.85
+    }
+  },
+  {
+    "id": "c5c824f8-18db-4089-badb-2993ab5aacd3",
+    "description": "Volkswagen 2019 - Accrochage dans une zone non couverte g\u00e9ographiquement. Dossier incomplet.",
+    "parts_damaged": "aile avant, porti\u00e8re avant",
+    "contract_type": "TIERS_PLUS",
+    "enriched": true,
+    "ground_truth": {
+      "claim_type": "VEHICLE_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 2300.0,
+      "fraud_score": 0.25
+    }
+  },
+  {
+    "id": "1bf0bace-df96-4cc7-9303-eddd640bd474",
+    "description": "Incendie commerce : cause suspect\u00e9e volontaire selon voisins. Enqu\u00eate en cours.",
+    "parts_damaged": "commerce, stock, \u00e9quipements",
+    "contract_type": "MULTIRISQUE_PRO",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "PROPERTY_DAMAGE",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 35000.0,
+      "fraud_score": 0.62
+    }
+  },
+  {
+    "id": "cfe01a1b-d9a7-47ae-8a9b-62cb81862d0a",
+    "description": "Moto 125cc : vol d\u00e9clar\u00e9 mais retrouv\u00e9e endommag\u00e9e dans une d\u00e9charge. Dossier ambigu.",
+    "parts_damaged": "moto 125cc",
+    "contract_type": "TOUS_RISQUES",
+    "enriched": false,
+    "ground_truth": {
+      "claim_type": "THEFT",
+      "decision": "PENDING_REVIEW",
+      "estimated_amount": 4000.0,
+      "fraud_score": 0.44
+    }
+  }
+]

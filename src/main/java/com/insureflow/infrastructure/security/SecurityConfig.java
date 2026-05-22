@@ -57,10 +57,11 @@ public class SecurityConfig {
             Map<String, Object> realmAccess = jwt.getClaim("realm_access");
             if (realmAccess == null) return List.of();
 
-            Collection<String> roles = (Collection<String>) realmAccess.get("roles");
-            if (roles == null) return List.of();
+            if (!(realmAccess.get("roles") instanceof Collection<?> rawRoles)) return List.of();
 
-            return roles.stream()
+            return rawRoles.stream()
+                    .filter(String.class::isInstance)
+                    .map(String.class::cast)
                     .filter(role -> role.equals("CLIENT") || role.equals("ADMIN"))
                     .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
                     .collect(Collectors.toList());

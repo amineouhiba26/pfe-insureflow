@@ -9,7 +9,9 @@ import com.insureflow.domain.model.enums.ClaimStatus;
 import com.insureflow.domain.model.enums.Severity;
 import com.insureflow.domain.port.out.ClaimRepository;
 import com.insureflow.estimator.CarPartsPricingService;
+import com.insureflow.estimator.NonVehiclePricingService;
 import com.insureflow.estimator.PriceEstimate;
+import com.insureflow.estimator.SimilarClaimsService;
 import com.insureflow.infrastructure.messaging.ClaimEvent;
 import com.insureflow.infrastructure.messaging.RabbitMQConfig;
 import com.insureflow.infrastructure.pricing.PricingResearchService;
@@ -45,6 +47,8 @@ public class EstimatorAgentService {
     private final VisionAnalysisService    visionAnalysisService;
     private final PricingResearchService   pricingResearchService;
     private final CarPartsPricingService   carPartsPricingService;
+    private final NonVehiclePricingService nonVehiclePricingService;
+    private final SimilarClaimsService     similarClaimsService;
     private final ClaimRepository          claimRepository;
     private final ImageQualityService      imageQualityService;
     private final RabbitTemplate           rabbitTemplate;
@@ -66,22 +70,38 @@ public class EstimatorAgentService {
             "308", "208", "golf", "punto", "ranger", "focus", "transit"
     };
 
+    private static final Pattern VEHICLE_INFO_PATTERN = Pattern.compile(
+            "(Ford Ranger|Ford Focus|Ford Transit|Toyota Hilux|Toyota Corolla|" +
+            "Peugeot 208|Peugeot 308|Renault Clio|Renault Duster|Renault Symbol|" +
+            "Volkswagen Golf|Hyundai Tucson|Hyundai i10|Kia Sportage|Kia Picanto|" +
+            "Fiat Punto|Fiat 500|Citroën C3|Citroën Berlingo|" +
+            "Mercedes Classe|BMW Série|Audi A|Nissan Qashqai|Mitsubishi L200)",
+            Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+    private static final Pattern YEAR_PATTERN = Pattern.compile("\\b(20[12][0-9])\\b");
+    private static final Pattern LLM_RANGE_PATTERN = Pattern.compile("(\\d{2,7})\\s*[-–]\\s*(\\d{2,7})");
+    private static final BigDecimal DEFAULT_CAR_VALUE_TND = BigDecimal.valueOf(25_000);
+    private static final double TOTAL_LOSS_RATIO = 0.85;
+
     public EstimatorAgentService(EstimatorAgent estimatorAgent,
                                  VisionAnalysisService visionAnalysisService,
                                  PricingResearchService pricingResearchService,
                                  CarPartsPricingService carPartsPricingService,
+                                 NonVehiclePricingService nonVehiclePricingService,
+                                 SimilarClaimsService similarClaimsService,
                                  ClaimRepository claimRepository,
                                  ImageQualityService imageQualityService,
                                  RabbitTemplate rabbitTemplate,
                                  ChatLanguageModel chatModel) {
-        this.estimatorAgent         = estimatorAgent;
-        this.visionAnalysisService  = visionAnalysisService;
-        this.pricingResearchService = pricingResearchService;
-        this.carPartsPricingService = carPartsPricingService;
-        this.claimRepository        = claimRepository;
-        this.imageQualityService    = imageQualityService;
-        this.rabbitTemplate         = rabbitTemplate;
-        this.chatModel              = chatModel;
+        this.estimatorAgent          = estimatorAgent;
+        this.visionAnalysisService   = visionAnalysisService;
+        this.pricingResearchService  = pricingResearchService;
+        this.carPartsPricingService  = carPartsPricingService;
+        this.nonVehiclePricingService = nonVehiclePricingService;
+        this.similarClaimsService    = similarClaimsService;
+        this.claimRepository         = claimRepository;
+        this.imageQualityService     = imageQualityService;
+        this.rabbitTemplate          = rabbitTemplate;
+        this.chatModel               = chatModel;
     }
 
     @RabbitListener(queues = RabbitMQConfig.Q_ESTIMATED)
@@ -139,7 +159,12 @@ public class EstimatorAgentService {
             CostEstimate costs = lookupCosts(elements, claimType, vehicleInfo,
                     overallSeverity, event.getDescription());
 
-            String enriched = buildResultJson(json, costs, imageScore, claimType, visionUsed);
+            // Step 4: Similarity search — non-blocking, enriches LLM context
+            List<SimilarClaimsService.SimilarClaim> similar =
+                    similarClaimsService.findSimilar(event.getDescription(), claimType, 3);
+            String similarContext = buildSimilarClaimsContext(similar);
+
+            String enriched = buildResultJson(json, costs, imageScore, claimType, visionUsed, similarContext);
             double conf = ResponseParser.getDouble(json, "confidence", 0.5);
 
             return AgentResult.success(enriched, conf, "");
@@ -238,6 +263,33 @@ public class EstimatorAgentService {
                     }
                 } catch (Exception ex) {
                     log.warn("[ESTIMATOR] DB lookup failed '{}': {}", el.name(), ex.getMessage());
+                }
+            }
+
+            // ── NonVehicle DB — for THEFT / PROPERTY_DAMAGE / NATURAL_DISASTER / HEALTH ─
+            if (!priced && !"VEHICLE_DAMAGE".equals(claimType)) {
+                try {
+                    Optional<PriceEstimate> nvHit =
+                            nonVehiclePricingService.findByClaimTypeAndDescription(
+                                    claimType, el.name() + " " + description);
+                    if (nvHit.isPresent()) {
+                        PriceEstimate pe  = nvHit.get();
+                        BigDecimal avg    = pe.allShopsAvgPrice();
+                        BigDecimal partMin = pe.minPrice() != null ? pe.minPrice() : avg;
+                        BigDecimal partMax = pe.maxPrice() != null ? pe.maxPrice() : avg;
+                        dbFloorTotal = dbFloorTotal.add(avg);
+                        totalMin     = totalMin.add(partMin);
+                        totalMax     = totalMax.add(partMax);
+                        breakdown.add(String.format("%s (%s): %.2f–%.2f TND (mid %.2f) [NonVehicleDB/%s]",
+                                el.name(), el.severity(), partMin, partMax, avg, pe.confidenceLevel()));
+                        dbHits++;
+                        priced = true;
+                    } else {
+                        log.warn("[ESTIMATOR] NonVehicle DB: no match for type={} element='{}'",
+                                claimType, el.name());
+                    }
+                } catch (Exception ex) {
+                    log.warn("[ESTIMATOR] NonVehicle DB lookup failed '{}': {}", el.name(), ex.getMessage());
                 }
             }
 
@@ -375,12 +427,12 @@ public class EstimatorAgentService {
         }
 
         if (carValue.compareTo(BigDecimal.ZERO) <= 0) {
-            carValue   = BigDecimal.valueOf(25_000);
+            carValue   = DEFAULT_CAR_VALUE_TND;
             dataSource = "db";
             log.warn("[ESTIMATOR] TOTAL_LOSS: no market value found, defaulting to 25 000 TND");
         }
 
-        BigDecimal totalLoss = carValue.multiply(BigDecimal.valueOf(0.85))
+        BigDecimal totalLoss = carValue.multiply(BigDecimal.valueOf(TOTAL_LOSS_RATIO))
                 .setScale(2, RoundingMode.HALF_UP);
 
         String label = (carBrand == null || carBrand.isEmpty()) ? "véhicule"
@@ -426,7 +478,7 @@ public class EstimatorAgentService {
             String raw = resp.content().text().trim();
             log.info("[ESTIMATOR] LLM fallback raw: '{}'", raw);
 
-            Matcher rangeMatcher = Pattern.compile("(\\d{2,7})\\s*[-–]\\s*(\\d{2,7})").matcher(raw);
+            Matcher rangeMatcher = LLM_RANGE_PATTERN.matcher(raw);
             List<long[]> found = new ArrayList<>();
             while (rangeMatcher.find()) {
                 long min = Long.parseLong(rangeMatcher.group(1));
@@ -556,13 +608,7 @@ public class EstimatorAgentService {
 
     private String extractVehicleInfo(String description, String claimType) {
         if (!"VEHICLE_DAMAGE".equals(claimType) || description == null) return null;
-        Matcher m = Pattern.compile(
-                "(Ford Ranger|Ford Focus|Ford Transit|Toyota Hilux|Toyota Corolla|" +
-                        "Peugeot 208|Peugeot 308|Renault Clio|Renault Duster|Renault Symbol|" +
-                        "Volkswagen Golf|Hyundai Tucson|Hyundai i10|Kia Sportage|Kia Picanto|" +
-                        "Fiat Punto|Fiat 500|Citroën C3|Citroën Berlingo|" +
-                        "Mercedes Classe|BMW Série|Audi A|Nissan Qashqai|Mitsubishi L200)",
-                Pattern.CASE_INSENSITIVE).matcher(description);
+        Matcher m = VEHICLE_INFO_PATTERN.matcher(description);
         return m.find() ? m.group(0).trim() : null;
     }
 
@@ -592,7 +638,7 @@ public class EstimatorAgentService {
     /** Extracts a 4-digit model year (2010–2029) from free-text description. */
     private Integer extractYear(String description) {
         if (description == null) return null;
-        Matcher m = Pattern.compile("\\b(20[12][0-9])\\b").matcher(description);
+        Matcher m = YEAR_PATTERN.matcher(description);
         return m.find() ? Integer.parseInt(m.group(1)) : null;
     }
 
@@ -635,7 +681,7 @@ public class EstimatorAgentService {
 
     private String buildResultJson(String llmJson, CostEstimate costs,
                                    double imageQuality, String claimType,
-                                   boolean visionUsed) {
+                                   boolean visionUsed, String similarContext) {
         try {
             JsonNode llm         = mapper.readTree(llmJson);
             boolean  unavailable = "unavailable".equals(costs.pricingMethod());
@@ -672,10 +718,42 @@ public class EstimatorAgentService {
             }
             node.set("costBreakdown", mapper.valueToTree(costs.breakdown()));
 
+            if (similarContext != null && !similarContext.isBlank()) {
+                node.put("similarClaimsContext", similarContext);
+            }
+
             return mapper.writeValueAsString(node);
         } catch (Exception e) {
             return llmJson;
         }
+    }
+
+    private String buildSimilarClaimsContext(List<SimilarClaimsService.SimilarClaim> similar) {
+        if (similar == null || similar.isEmpty()) return "";
+
+        StringBuilder sb = new StringBuilder("Sinistres similaires traités:\n");
+        for (int i = 0; i < similar.size(); i++) {
+            SimilarClaimsService.SimilarClaim s = similar.get(i);
+            int scorePct = (int) Math.round(s.similarity() * 100);
+            sb.append(String.format("%d. [%s] %s → %.2f TND (similarité: %d%%)%n",
+                    i + 1,
+                    s.decision(),
+                    s.description() != null
+                            ? s.description().substring(0, Math.min(80, s.description().length()))
+                            : "N/A",
+                    s.estimatedAmount(),
+                    scorePct));
+        }
+
+        // DIAG log
+        if (!similar.isEmpty()) {
+            String diagLine = similar.stream()
+                    .map(s -> s.decision() + "@" + (int) Math.round(s.similarity() * 100) + "%")
+                    .collect(Collectors.joining(" | "));
+            log.info("[ESTIMATOR] Similar claims found: {}", diagLine);
+        }
+
+        return sb.toString().trim();
     }
 
     /**

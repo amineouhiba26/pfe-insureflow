@@ -127,10 +127,10 @@ public class DocumentIngestionAdapter implements VectorStorePort {
                 .filterExpression(b.eq("policyId", policyId).build())
                 .build();
 
-        List<String> rawChunks = vectorStore.similaritySearch(request)
-                .stream()
-                .map(Document::getText)
-                .collect(Collectors.toList());
+        List<Document> searchResult = vectorStore.similaritySearch(request);
+        List<String> rawChunks = searchResult != null
+                ? searchResult.stream().map(Document::getText).collect(Collectors.toList())
+                : List.of();
 
         // Post-process : nettoie, tronque et déduplique les chunks récupérés
         List<String> processed = postProcess(rawChunks);
@@ -153,7 +153,16 @@ public class DocumentIngestionAdapter implements VectorStorePort {
     }
 
     private Path writeTempFile(byte[] bytes, String fileName) throws IOException {
-        Path temp = Files.createTempFile("insureflow-", "-" + fileName);
+        Path temp = Files.createTempFile("insureflow-", "-" + fileName); //NOSONAR owner-only permissions applied immediately below; file deleted after use
+        // Restrict to owner-only access — temp dir is world-writable on most OSes
+        try {
+            Files.setPosixFilePermissions(temp,
+                java.util.EnumSet.of(
+                    java.nio.file.attribute.PosixFilePermission.OWNER_READ,
+                    java.nio.file.attribute.PosixFilePermission.OWNER_WRITE));
+        } catch (UnsupportedOperationException ignored) {
+            // Non-POSIX filesystem (e.g. Windows) — OS defaults apply
+        }
         Files.write(temp, bytes);
         return temp;
     }
@@ -225,9 +234,9 @@ public class DocumentIngestionAdapter implements VectorStorePort {
                 .filter(line -> !line.isBlank())
                 .filter(line -> !line.matches("^\\d{1,2}$"))
                 .filter(line -> line.length() >= MIN_LINE_LENGTH)
-                .filter(line -> !line.matches("(?i).*BNA\\s+ASSURANCES.*"))
-                .filter(line -> !line.matches("(?i)^(Le Souscripteur|Fait à|P/\\s*BNA).*"))
-                .filter(line -> !line.matches("(?i)^(Siège social|Fax|Site web|courrier).*"))
+                .filter(line -> !line.matches("(?iu).*BNA\\s+ASSURANCES.*"))
+                .filter(line -> !line.matches("(?iu)^(Le Souscripteur|Fait à|P/\\s*BNA).*"))
+                .filter(line -> !line.matches("(?iu)^(Siège social|Fax|Site web|courrier).*"))
                 .collect(Collectors.joining(" "));  // ← SPACE pas \n
 
         // Collapse espaces multiples qui peuvent apparaître après le join

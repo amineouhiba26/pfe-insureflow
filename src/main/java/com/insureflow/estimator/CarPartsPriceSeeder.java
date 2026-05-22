@@ -41,7 +41,8 @@ public class CarPartsPriceSeeder implements ApplicationRunner {
         List<Object[]> rows = new ArrayList<>();
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(csv.getInputStream()))) {
-            reader.readLine(); // skip header line
+            String header = reader.readLine(); // skip CSV header
+            if (header == null) return;        // empty file guard
 
             String line;
             while ((line = reader.readLine()) != null) {

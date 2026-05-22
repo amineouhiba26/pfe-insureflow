@@ -1,0 +1,155 @@
+{
+  "info": {
+    "name": "InsureFlow — Analytics Endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url",      "value": "http://localhost:8080" },
+    { "key": "keycloak_url",  "value": "http://localhost:8180" },
+    { "key": "realm",         "value": "insureflow" },
+    { "key": "client_id",     "value": "insureflow-frontend" },
+    { "key": "username",      "value": "admin.insureflow" },
+    { "key": "password",      "value": "Admin2026!" },
+    { "key": "access_token",  "value": "" }
+  ],
+  "item": [
+    {
+      "name": "0 — Get Token (Keycloak)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json.access_token) {",
+              "    pm.collectionVariables.set('access_token', json.access_token);",
+              "    console.log('Token saved. Expires in:', json.expires_in, 's');",
+              "} else {",
+              "    console.error('No access_token in response:', JSON.stringify(json));",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "grant_type", "value": "password" },
+            { "key": "client_id",  "value": "{{client_id}}" },
+            { "key": "username",   "value": "{{username}}" },
+            { "key": "password",   "value": "{{password}}" }
+          ]
+        },
+        "url": {
+          "raw": "{{keycloak_url}}/realms/{{realm}}/protocol/openid-connect/token",
+          "host": ["{{keycloak_url}}"],
+          "path": ["realms", "{{realm}}", "protocol", "openid-connect", "token"]
+        }
+      }
+    },
+    {
+      "name": "1 — Summary (KPI cards)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/admin/analytics/summary",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "admin", "analytics", "summary"]
+        }
+      }
+    },
+    {
+      "name": "2 — Claims by Type",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/admin/analytics/claims-by-type",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "admin", "analytics", "claims-by-type"]
+        }
+      }
+    },
+    {
+      "name": "3 — Claims by Status",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/admin/analytics/claims-by-status",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "admin", "analytics", "claims-by-status"]
+        }
+      }
+    },
+    {
+      "name": "4 — Monthly Evolution",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/admin/analytics/claims-monthly",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "admin", "analytics", "claims-monthly"]
+        }
+      }
+    },
+    {
+      "name": "5 — Avg Amount by Type",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/admin/analytics/avg-amount-by-type",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "admin", "analytics", "avg-amount-by-type"]
+        }
+      }
+    },
+    {
+      "name": "6 — Fraud Score Distribution",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/admin/analytics/fraud-score-distribution",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "admin", "analytics", "fraud-score-distribution"]
+        }
+      }
+    },
+    {
+      "name": "7 — Agent Performance",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/admin/analytics/agent-performance",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "admin", "analytics", "agent-performance"]
+        }
+      }
+    }
+  ]
+}

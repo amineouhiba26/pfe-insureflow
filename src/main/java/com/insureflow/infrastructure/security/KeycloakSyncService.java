@@ -133,8 +133,9 @@ public class KeycloakSyncService {
                     new HttpEntity<>(headers),
                     new org.springframework.core.ParameterizedTypeReference<List<Map<String, Object>>>() {}
             );
-            if (response.getBody() != null && !response.getBody().isEmpty()) {
-                return (String) ((Map<?, ?>) response.getBody().get(0)).get("id");
+            List<Map<String, Object>> body = response.getBody();
+            if (body != null && !body.isEmpty()) {
+                return (String) ((Map<?, ?>) body.get(0)).get("id");
             }
         } catch (Exception e) {
             log.debug("[KEYCLOAK SYNC] findByEmail failed: {}", e.getMessage());
@@ -153,8 +154,9 @@ public class KeycloakSyncService {
                     new HttpEntity<>(headers),
                     new org.springframework.core.ParameterizedTypeReference<List<Map<String, Object>>>() {}
             );
-            if (response.getBody() != null && !response.getBody().isEmpty()) {
-                return (String) ((Map<?, ?>) response.getBody().get(0)).get("id");
+            List<Map<String, Object>> body = response.getBody();
+            if (body != null && !body.isEmpty()) {
+                return (String) ((Map<?, ?>) body.get(0)).get("id");
             }
         } catch (Exception e) {
             log.debug("[KEYCLOAK SYNC] findByUsername failed: {}", e.getMessage());
@@ -240,8 +242,9 @@ public class KeycloakSyncService {
                 new org.springframework.core.ParameterizedTypeReference<List<Map<String, Object>>>() {}
         );
 
-        if (scopesResp.getBody() != null) {
-            String existing = scopesResp.getBody().stream()
+        List<Map<String, Object>> existingScopes = scopesResp.getBody();
+        if (existingScopes != null) {
+            String existing = existingScopes.stream()
                     .filter(s -> "cin".equals(s.get("name")))
                     .map(s -> (String) s.get("id"))
                     .findFirst()
@@ -274,8 +277,9 @@ public class KeycloakSyncService {
                 new org.springframework.core.ParameterizedTypeReference<List<Map<String, Object>>>() {}
         );
 
-        String cinScopeId = updatedResp.getBody() == null ? null :
-                updatedResp.getBody().stream()
+        List<Map<String, Object>> updatedScopes = updatedResp.getBody();
+        String cinScopeId = updatedScopes == null ? null :
+                updatedScopes.stream()
                         .filter(s -> "cin".equals(s.get("name")))
                         .map(s -> (String) s.get("id"))
                         .findFirst()
@@ -324,12 +328,13 @@ public class KeycloakSyncService {
                     new org.springframework.core.ParameterizedTypeReference<List<Map<String, Object>>>() {}
             );
 
-            if (clientsResp.getBody() == null || clientsResp.getBody().isEmpty()) {
+            List<Map<String, Object>> clients = clientsResp.getBody();
+            if (clients == null || clients.isEmpty()) {
                 log.warn("[KEYCLOAK SYNC] Client '{}' not found in realm", clientId);
                 return;
             }
 
-            String clientUuid = (String) clientsResp.getBody().get(0).get("id");
+            String clientUuid = (String) clients.get(0).get("id");
 
             // Check if already assigned as default
             ResponseEntity<List<Map<String, Object>>> defaultScopes = restTemplate.exchange(
@@ -340,8 +345,9 @@ public class KeycloakSyncService {
                     new org.springframework.core.ParameterizedTypeReference<List<Map<String, Object>>>() {}
             );
 
-            boolean alreadyAssigned = defaultScopes.getBody() != null &&
-                    defaultScopes.getBody().stream()
+            List<Map<String, Object>> scopesList = defaultScopes.getBody();
+            boolean alreadyAssigned = scopesList != null &&
+                    scopesList.stream()
                             .anyMatch(s -> scopeId.equals(s.get("id")));
 
             if (alreadyAssigned) {
@@ -456,6 +462,10 @@ public class KeycloakSyncService {
                 new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {}
         );
 
-        return (String) response.getBody().get("access_token");
+        Map<String, Object> tokenBody = response.getBody();
+        if (tokenBody == null) {
+            throw new IllegalStateException("Empty response from Keycloak token endpoint");
+        }
+        return (String) tokenBody.get("access_token");
     }
 }

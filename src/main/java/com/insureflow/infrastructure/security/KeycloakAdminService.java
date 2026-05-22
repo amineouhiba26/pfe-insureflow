@@ -9,6 +9,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
@@ -78,8 +79,12 @@ public class KeycloakAdminService {
 
             if (response.getStatusCode() == HttpStatus.CREATED) {
                 // Get the created user's ID from Location header
-                String location = response.getHeaders()
-                        .getLocation().toString();
+                URI locationUri = response.getHeaders().getLocation();
+                if (locationUri == null) {
+                    log.error("[KEYCLOAK] No Location header in create user response");
+                    return null;
+                }
+                String location = locationUri.toString();
                 String keycloakUserId = location.substring(
                         location.lastIndexOf('/') + 1);
 
@@ -112,8 +117,12 @@ public class KeycloakAdminService {
                 new org.springframework.core.ParameterizedTypeReference<List<Map<String, Object>>>() {}
             );
 
-            Map<String, Object> clientRole = rolesResponse.getBody()
-                .stream()
+            List<Map<String, Object>> roles = rolesResponse.getBody();
+            if (roles == null) {
+                log.warn("[KEYCLOAK] CLIENT role not found — empty response");
+                return;
+            }
+            Map<String, Object> clientRole = roles.stream()
                 .filter(r -> "CLIENT".equals(r.get("name")))
                 .findFirst()
                 .orElse(null);
@@ -155,6 +164,10 @@ public class KeycloakAdminService {
             new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {}
         );
 
-        return (String) response.getBody().get("access_token");
+        Map<String, Object> tokenBody = response.getBody();
+        if (tokenBody == null) {
+            throw new IllegalStateException("Empty response from Keycloak token endpoint");
+        }
+        return (String) tokenBody.get("access_token");
     }
 }
