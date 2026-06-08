@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS past_claims (
     fraud_score             DECIMAL(3,2),
     processing_time_seconds INT,
     claim_date              DATE,
-    embedding               vector(768)
+    embedding               vector(1024)
 );
 
 CREATE INDEX IF NOT EXISTS idx_past_claims_claim_type ON past_claims (claim_type);
