@@ -31,7 +31,7 @@ public class DecisionMatrix {
     private static final double     FRAUD_THRESHOLD = 0.6;
     private static final BigDecimal COST_THRESHOLD  = BigDecimal.valueOf(15_000);
 
-    public enum Decision { PENDING_REVIEW }
+    public enum Decision { PENDING_REVIEW, REJECTED }
 
     public record DecisionResult(Decision decision, String reason, String flag) {}
 
@@ -39,16 +39,28 @@ public class DecisionMatrix {
         log.info("[DECISION] Evaluating claimId={} confidence={}",
                 claim.getId(), confidenceScore);
 
-        // Rule 1 — not covered → send to human review with flag
         boolean covered = ResponseParser.getBoolean(
                 claim.getValidatorResult(), "covered", true);
+        String validatorReason = ResponseParser.getString(
+                claim.getValidatorResult(), "reasoning",
+                "Couverture non confirmée par le contrat");
+
+        // Rule 0 — deterministic scope-guard rejection (confidence >= 0.99 means the
+        // ClaimScopeChecker fired, not the LLM — safe to auto-reject without human review).
         if (!covered) {
-            String reason = ResponseParser.getString(
-                    claim.getValidatorResult(), "reasoning",
-                    "Couverture non confirmée par le contrat");
+            double validatorConf = ResponseParser.getDouble(
+                    claim.getValidatorResult(), "confidence", 0.0);
+            if (validatorConf >= 0.99) {
+                log.info("[DECISION] Rule 0 — SCOPE GUARD (conf={}) → REJECTED", validatorConf);
+                return new DecisionResult(Decision.REJECTED, validatorReason, "HORS_PERIMETRE");
+            }
+        }
+
+        // Rule 1 — not covered but low-confidence → human review
+        if (!covered) {
             log.info("[DECISION] Rule 1 — NOT COVERED → PENDING_REVIEW");
             return new DecisionResult(Decision.PENDING_REVIEW,
-                    "Couverture à vérifier: " + reason,
+                    "Couverture à vérifier: " + validatorReason,
                     "NON_COUVERT");
         }
 

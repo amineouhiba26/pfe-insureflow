@@ -33,23 +33,32 @@ public class DecisionService {
 
     public ClaimStatus decide(Claim claim) {
         log.info("[DECISION-SERVICE] Evaluating decision for claimId={}", claim.getId());
-        
+
         double confidence = confidenceCalculator.compute(claim);
         claim.setConfidenceScore(confidence);
 
         DecisionMatrix.DecisionResult result = decisionMatrix.evaluate(claim, confidence);
 
-        // Everything is PENDING_REVIEW now (manual admin approval required)
-        ClaimStatus status = ClaimStatus.PENDING_REVIEW;
+        if (result.decision() == DecisionMatrix.Decision.REJECTED) {
+            // Deterministic scope-guard rejection — auto-reject without human review.
+            // The claim is hors périmètre with confidence >= 0.99 (keyword-based, not LLM).
+            claim.setRejectionReason(result.reason());
+            claim.transitionTo(ClaimStatus.REJECTED);
+            claimRepository.save(claim);
+            log.info("[DECISION-SERVICE] AUTO-REJECTED (hors périmètre) — claimId={} flag={} reason={}",
+                    claim.getId(), result.flag(), result.reason());
+            return ClaimStatus.REJECTED;
+        }
 
-        claim.transitionTo(status);
+        // PENDING_REVIEW — human adjuster required for all other cases.
+        claim.transitionTo(ClaimStatus.PENDING_REVIEW);
         claimRepository.save(claim);
+        reviewRepository.save(HumanReviewTask.createFor(claim.getId(), result.reason()));
+        log.info("[DECISION-SERVICE] PENDING_REVIEW — flag={} reason={} claimId={}",
+                result.flag(), result.reason(), claim.getId());
 
-        reviewRepository.save(HumanReviewTask.createFor(
-                claim.getId(), result.reason()));
-        log.info("[DECISION-SERVICE] Human review required — reason: {}", result.reason());
-
-        log.info("[DECISION-SERVICE] Final status: {} for claimId={}", status, claim.getId());
-        return status;
+        log.info("[DECISION-SERVICE] Final status: {} for claimId={}",
+                ClaimStatus.PENDING_REVIEW, claim.getId());
+        return ClaimStatus.PENDING_REVIEW;
     }
 }

@@ -125,7 +125,10 @@ public class AdminController {
         }
         Client client = new Client();
         client.setFullName(req.fullName());
-        client.setEmail(req.email() != null ? req.email() : req.fullName().toLowerCase().replace(" ", ".") + "@insureflow.com");
+        String email = (req.email() != null && !req.email().isBlank())
+                ? req.email()
+                : req.fullName().toLowerCase().replace(" ", ".") + "@insureflow.com";
+        client.setEmail(email);
         client.setPhone(req.phone());
         client.setNationalId(req.cin());
         Client saved = clientRepository.save(client);

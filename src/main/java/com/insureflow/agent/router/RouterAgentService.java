@@ -47,11 +47,11 @@ public class RouterAgentService {
             claimRepository.save(claim);
         });
 
-        // Trigger next agents now that type is persisted
+        // Trigger Validator only — Validator decides whether to continue to Estimator
+        // or short-circuit to Decision (for out-of-scope claims).
         rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE, RabbitMQConfig.Q_VALIDATED, event);
-        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE, RabbitMQConfig.Q_ESTIMATED, event);
 
-        log.info("[ROUTER] Done claimId={} -> type={}, triggered validator+estimator", 
+        log.info("[ROUTER] Done claimId={} -> type={}, triggered validator (sequential gate)",
                 event.getClaimId(), claimType);
     }
 
