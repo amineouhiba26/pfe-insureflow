@@ -8,8 +8,8 @@
     { "key": "keycloak_url",  "value": "http://localhost:8180" },
     { "key": "realm",         "value": "insureflow" },
     { "key": "client_id",     "value": "insureflow-frontend" },
-    { "key": "username",      "value": "admin.insureflow" },
-    { "key": "password",      "value": "Admin2026!" },
+    { "key": "username",      "value": "your-admin-username" },
+    { "key": "password",      "value": "your-admin-password" },
     { "key": "access_token",  "value": "" }
   ],
   "item": [

@@ -1,3 +1,6 @@
+# Copy this file to application.yml and fill in the values.
+# application.yml is gitignored — never commit real secrets.
+
 spring:
   security:
     oauth2:
@@ -19,16 +22,16 @@ spring:
 
   datasource:
     url: jdbc:postgresql://localhost:5433/insureflow_db
-    username: postgres
-    password: postgres
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
       minimum-idle: 2
       connection-timeout: 20000
       idle-timeout: 300000
-      max-lifetime: 600000        # reduce from default 1800000
-      keepalive-time: 60000       # ping connections every 60s
+      max-lifetime: 600000
+      keepalive-time: 60000
       connection-test-query: SELECT 1
 
   jpa:
@@ -48,8 +51,8 @@ spring:
   rabbitmq:
     host: localhost
     port: 5672
-    username: insureflow
-    password: insureflow
+    username: ${RABBITMQ_USERNAME:insureflow}
+    password: ${RABBITMQ_PASSWORD:insureflow}
 
   ai:
     ollama:
@@ -109,13 +112,13 @@ langchain4j:
       timeout: 120s
 
 cloudinary:
-  cloud-name: dmqevyefl
-  api-key: REDACTED
-  api-secret: REDACTED
+  cloud-name: YOUR_CLOUDINARY_CLOUD_NAME
+  api-key: YOUR_CLOUDINARY_API_KEY
+  api-secret: YOUR_CLOUDINARY_API_SECRET
   folder: insureflow-claims
 
 serpapi:
-  api-key: REDACTED
+  api-key: YOUR_SERPAPI_KEY
 
 pricing:
   bounds:
@@ -133,7 +136,7 @@ pricing:
       max: 9999999
 
 gemini:
-  api-key: REDACTED
+  api-key: YOUR_GEMINI_API_KEY
 
 ollama:
   base-url: http://localhost:11434
@@ -153,4 +156,4 @@ keycloak:
   admin:
     client-id: admin-cli
     username: admin
-    password: REDACTED
+    password: YOUR_KEYCLOAK_ADMIN_PASSWORD
